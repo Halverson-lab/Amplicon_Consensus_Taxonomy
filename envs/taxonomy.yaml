@@ -1,0 +1,8 @@
+name: taxonomy-env
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - emu
+  - vsearch

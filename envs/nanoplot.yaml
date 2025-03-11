@@ -1,0 +1,7 @@
+name: nanoplot-env
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - nanoplot

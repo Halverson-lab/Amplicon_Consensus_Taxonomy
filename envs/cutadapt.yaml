@@ -1,0 +1,8 @@
+name: cutadapt-env
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - cutadapt
+  - nanofilt
