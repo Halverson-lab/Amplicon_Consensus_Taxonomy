@@ -28,7 +28,7 @@ Run the environment setup script once. This will build all of your environments.
 ```shell
 # Go to work directory
 cd $WORK_DIR
-./Environment_setup.sh
+./environment_setup.sh
 ```
 
 ## Examining reads and setting quality control parameters.
@@ -41,7 +41,7 @@ If you have multiple primers in a library and are expecting different sequence l
 
 ```shell
 # run the script to generate the slurm batch script and submit it
-./Nanoplot_helper.sh
+./nanoplot_helper.sh
 
 # after it finishes use it to fill in the QC and Demux portion of the config file, based on your read distributions
 ```
@@ -67,7 +67,7 @@ If you have multiple libraries that have different barcodes but were run on the 
 ```shell
 # run the script to generate the slurm batch scripts and submit it
 # The slurm scripts in this job are run with dependencies so they have to run and finish in order 
-./QC_Demultiplex.sh
+./QC_demultiplex.sh
 # If you need to re-run this because it failed at some step, just delete the failed folders and leave the successful ones,
 # it will only re-run the steps with empty folders
 ```
@@ -116,13 +116,13 @@ The `-o` and `-a` flags can only be run once the laca clustering is finished, as
 #   -h to print options
 
 # If running before the OTUs are done clustering
-./Taxonomy_assignment.sh -e -s
+./taxonomy_assignment.sh -e -s
 
 # Then run the OTUs once they're finished
-./Taxonomy_assignment.sh -o
+./taxonomy_assignment.sh -o
 
 # or if running everything at once
-./Taxonomy_assignment.sh -a
+./taxonomy_assignment.sh -a
 ```
 
 
