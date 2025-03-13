@@ -113,7 +113,7 @@ conda deactivate
 
 ## Taxonomic assignments
 
-The taxonomic assignments are done with `sintax` and `EMU`. This step can be started while `LACA` is still running, using the flags to submit only the selected scripts. The databases for 16S genes is provided, but there is a guide on how to regenerate them included. If working with known organisms, such as inoculating with a lab strain, then I recommend manually adding the corresponding sequences to the files. You can also provide custom databases, following the guidelines for creating an [EMU](https://github.com/treangenlab/emu) and [sintax](https://www.drive5.com/usearch/manual/cmd_sintax.html) database.
+The taxonomic assignments are done with `sintax` and `EMU`. This step can be started while `LACA` is still running, using the flags to submit only the selected scripts. The databases for 16S genes is provided, but there is a guide on how to regenerate them included. If working with known organisms, such as inoculating with a lab strain, then I recommend manually adding the corresponding sequences to the files. You can also provide custom databases, following the guidelines for creating an [EMU](https://github.com/treangenlab/emu) and [sintax](https://www.drive5.com/usearch/manual/cmd_sintax.html) database. The taxonomy databases folder also contains a taxonomy file formatted for [microeco](https://chiliubio.github.io/microeco_tutorial/), to make it easier to analyze data later.
 
 If using the included database, you need to unzip the database files because the raw fasta was too large to add to github. Once unzipped they are ready to edit and use.
 
@@ -170,3 +170,8 @@ species
 Pseudomonas_putida_303
 Agrobacterium_tumefaciens_358
 ```
+
+## Running the script
+
+Once you have the specified files you can run the `generate_consensus_otu_table.R` script in your preferred R interface. If you have a large dataset I recommend running it on a PC with a lot of RAM or on the hpc clusters using [Nova OnDemand](https://www.hpc.iastate.edu/guides/open-ondemand). You will have to go through and specify file locations and settings in the R script; these sections have comments telling you to edit them.
+
