@@ -1,0 +1,98 @@
+################################### General Parameters ###################################
+#email for slurm notifications
+EMAIL=ashleyp1@iastate.edu
+
+#Main work directory
+WORK_DIR=/work/larryh/ashleyp1/Amplicon_Consensus_Taxonomy
+
+#Conda type (options are conda, mamba, micromamba)
+CONDA=mamba
+
+#Number of libraries
+LIBRARY=2
+
+#Max number of unique barcodes 
+BARCODES=72
+
+
+
+################################### QC and Demux Parameters ###################################
+#CPUs/Threads
+QC_THREADS=16
+
+#NanoFilt parameters for filtering before demultiplexing
+LOOSE_MIN_LENGTH=800
+LOOSE_MAX_LENGTH=4000
+LOOSE_MIN_Q=12
+
+#NanoFilt parameters for filtering after demultiplexing
+
+#If you have one set of amplicon lengths then put false in MULTI_LENGTH and just fill in the strict parameters
+MULTI_LENGTH=TRUE
+
+STRICT_MIN_LENGTH=1300
+STRICT_MAX_LENGTH=1700
+STRICT_MIN_Q=15
+
+#If you have multiple amplicon lengths then list parameters for each set using the format below. You can list as many sets as you need, but they must be named in numerical order (i.e. set_1, set_2, set_3)
+#Number of different amplicon lengths
+NUM_OF_AMPLICON_SETS=3
+
+#Samples in set 1, barcodes 1-5 in library 1
+LIB_SET_1=1
+BARCODE_SET_1=({1..5})
+
+MIN_1=1200
+MAX_1=1400
+MINQ_1=15
+
+#Samples in set 2, barcodes 7,9,10,13 in library 1
+LIB_SET_2=2
+BARCODE_SET_2=(7 9 10 13)
+
+MIN_2=800
+MAX_2=1000
+MINQ_2=14
+
+#Samples in set 3, barcodes 13-15 in library 1 and 2
+LIB_SET_3=({1..3})
+BARCODE_SET_3=({13..15})
+
+MIN_3=900
+MAX_3=1300
+MINQ_3=12
+
+
+# cutadapt parameters
+BARCODE_FILE=/work/larryh/ashleyp1/Amplicon_Consensus_Taxonomy/barcodes.fasta
+
+# Generally should be your barcode length -1
+BARCODE_OVERLAP=12
+
+# Barcodes should be numbered and you put in the numbers you used
+# ({1..72}) is the range from 1 to 72
+# ({1..3} {5..10}) is 1 2 3 5 6 7 8 9 10
+# (1 3 5 7 9 22) list individual barcodes like so
+BARCODE_SEQUENCE=({1..72})
+
+
+#number of hours for the slurm job, increase if it times out
+DEMUX_JOB_TIME=6 
+
+
+################################### Taxonomy Parameters ###################################
+
+#LACA Parameters
+LACA_DIR=/work/larryh/ashleyp1/Amplicon_Consensus_Taxonomy/laca
+MAX_JOBS=64 #max LACA will use for one task
+SLURM_MAX_CPUS=128 #Must be greater than MAX_JOBS. Depends on number of reads but more will speed up the slower parts signifcantly
+LACA_JOB_TIME=7 #Number of days, (more reads = more time)
+
+
+#Sintax Parameters
+SINTAX_DB=/work/larryh/ashleyp1/Amplicon_Consensus_Taxonomy/Taxonomy_databases/sintax_db.fasta
+SINTAX_THREADS=32
+
+#EMU parameters
+EMU_DB=/work/larryh/ashleyp1/Amplicon_Consensus_Taxonomy/Taxonomy_databases
+EMU_THREADS=32
