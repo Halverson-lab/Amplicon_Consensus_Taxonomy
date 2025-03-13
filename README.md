@@ -10,7 +10,7 @@ All of these scripts are written to produce and run slurm batch scripts. All scr
 
 First set up the environment by cloning the github repository into your working directory, i.e. `/work/larryh/user`.
 
-```shell
+```bash
 git clone https://github.com/ashleyp1/Amplicon_Consensus_Taxonomy.git
 ```
 
@@ -18,17 +18,28 @@ From here forward everything should be done in this folder. Move your raw read f
 
 ## Config file
 
-The `config.txt` file has all of the settings for running the pipeline. It comes pre-filled out with example info, you need to delete that and fill it out with your info. Do not move or rename this file, simply open and edit it.
+The `config.txt` file has all of the settings for running the pipeline. It comes pre-filled out with example info, you need to delete that and fill it out with your info. Once you're done save the file into the scripts folder.
+
+```bash
+# make a copy of the config file
+cp example_config.txt config.txt
+
+# edit the config file with preferred test editor
+vim config.txt
+
+# move the updated config file to the scripts folder
+mv config.txt scripts/
+```
 
 
 ## Set up the environment
 
 Run the environment setup script once. This will build all of your environments. Most of these environments will be saved in the `envs` folder.
 
-```shell
+```bash
 # Go to work directory
 cd $WORK_DIR
-./environment_setup.sh
+scripts/environment_setup.sh
 ```
 
 ## Examining reads and setting quality control parameters.
@@ -39,9 +50,9 @@ Inspect your reads and identify quality score and length cut offs based on your 
 
 If you have multiple primers in a library and are expecting different sequence lengths then you can identify the parameters for each set and specify them in the config file.
 
-```shell
+```bash
 # run the script to generate the slurm batch script and submit it
-./nanoplot_helper.sh
+scripts/nanoplot_helper.sh
 
 # after it finishes use it to fill in the QC and Demux portion of the config file, based on your read distributions
 ```
@@ -64,10 +75,10 @@ If you have multiple libraries that have different barcodes but were run on the 
 
 ### Running the script
 
-```shell
+```bash
 # run the script to generate the slurm batch scripts and submit it
 # The slurm scripts in this job are run with dependencies so they have to run and finish in order 
-./QC_demultiplex.sh
+scripts/QC_demultiplex.sh
 # If you need to re-run this because it failed at some step, just delete the failed folders and leave the successful ones,
 # it will only re-run the steps with empty folders
 ```
@@ -80,14 +91,14 @@ I recommend you inspect your reads after this step to check for potential issues
 
  If the clustering fails or times out you can resubmit the `laca_run.sh` slurm and it will resume where it left off.
 
-```shell
+```bash
 # Set up laca (following their tutorial for the config file)
 # use your preferred conda
 conda activate laca
 
 # Set up the files and folders for laca and generate the config file
 # Use -r to run the slurm script, leave off the flag to just regenerate the config file and slurm scripts
-./laca_setup.sh -r
+scripts/laca_setup.sh -r
 
 # go in and check the laca config file, especially the medaka version and the primers
 vim $WORK_DIR/5_laca/config.yaml
@@ -106,13 +117,13 @@ The taxonomic assignments are done with `sintax` and `EMU`. This step can be sta
 
 If using the included database, you need to unzip the database files because the raw fasta was too large to add to github. Once unzipped they are ready to edit and use.
 
-```shell
+```bash
 gunzip taxonomy_databases/*.gz
 ```
 
 The `-o` and `-a` flags can only be run once the laca clustering is finished, as they perform the taxonomic assignment of the OTUs. If you want to start runing the taxonomic assignments while LACA is running you can run it using the example below. 
 
-```shell
+```bash
 # Use the flags to choose to run the slurm scripts or not
 # script usage: 
 #   -e to run EMU
@@ -122,13 +133,13 @@ The `-o` and `-a` flags can only be run once the laca clustering is finished, as
 #   -h to print options
 
 # If running before the OTUs are done clustering
-./taxonomy_assignment.sh -e -s
+scripts/taxonomy_assignment.sh -e -s
 
 # Then run the OTUs once they're finished
-./taxonomy_assignment.sh -o
+scripts/taxonomy_assignment.sh -o
 
 # or if running everything at once
-./taxonomy_assignment.sh -a
+scripts/taxonomy_assignment.sh -a
 ```
 
 
