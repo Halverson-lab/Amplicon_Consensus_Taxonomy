@@ -24,7 +24,7 @@ The `config.txt` file has all of the settings for running the pipeline. It comes
 # make a copy of the config file
 cp example_config.txt config.txt
 
-# edit the config file with preferred test editor
+# edit the config file with preferred text editor
 vim config.txt
 
 # move the updated config file to the scripts folder
