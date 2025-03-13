@@ -104,6 +104,12 @@ conda deactivate
 
 The taxonomic assignments are done with `sintax` and `EMU`. This step can be started while `LACA` is still running, using the flags to submit only the selected scripts. The databases for 16S genes is provided, but there is a guide on how to regenerate them included. If working with known organisms, such as inoculating with a lab strain, then I recommend manually adding the corresponding sequences to the files. You can also provide custom databases, following the guidelines for creating an [EMU](https://github.com/treangenlab/emu) and [sintax](https://www.drive5.com/usearch/manual/cmd_sintax.html) database.
 
+If using the included database, you need to unzip the database files because the raw fasta was too large to add to github. Once unzipped they are ready to edit and use.
+
+```shell
+gunzip taxonomy_databases/*.gz
+```
+
 The `-o` and `-a` flags can only be run once the laca clustering is finished, as they perform the taxonomic assignment of the OTUs. If you want to start runing the taxonomic assignments while LACA is running you can run it using the example below. 
 
 ```shell
