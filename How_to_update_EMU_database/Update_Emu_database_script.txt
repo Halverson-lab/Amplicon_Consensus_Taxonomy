@@ -1,0 +1,105 @@
+### Update Emu database ###
+
+#start with the following folders/files
+# database
+#   taxdump
+#   EMU_db_files
+#   NCBI
+#   rrnDB
+#     rrnDB-{version}_16S_rRNA.fasta (referred to as rrnDB.fasta)
+
+
+################# rrnDB #################
+
+cd /database/rrnDB
+
+# For later application we need fasta headers starting with useful sequence IDs
+# get fasta headers
+seqkit seq -n rrnDB.fasta > rrnDB_header_list.txt
+
+# get the RefSeq numbers from each header and generate new headers
+cat rrnDB_header_list.txt \
+    | csvtk add-header -t -n fasta_header \
+    | csvtk mutate -t -f 1 -p "(?:[^\|]*\|){2}(.*?)\|" -n refSeq \
+    | csvtk mutate2 -t -n newHeader -e '$refSeq + " " + $fasta_header'> rrnDB_header_refseq_list.txt
+
+# File of rrnDB header to new rrnDB header with RefSeq ID as the sequence ID
+cat rrnDB_header_refseq_list.txt | csvtk cut -t -f 1,3 | csvtk del-header -t > old2newheader.tsv
+# replace the headers
+seqkit replace -p '(.+)' -r '{kv}' -k old2newheader.tsv rrnDB.fasta > rrnDB_renamed.fasta
+
+# Use refSeq numbers to get taxid
+cat rrnDB_header_refseq_list.txt | csvtk cut -t -f 2 | csvtk del-header -t | epost -db nuccore | esummary -db nuccore | xtract -pattern DocumentSummary -element AccessionVersion,TaxId > rrnDB_seq2taxid.txt
+
+# Filter out any of the fasta seq that were removed
+csvtk cut -t -f 1 rrnDB_seq2taxid.txt > seq2keep.txt
+seqkit grep -f seq2keep.txt rrnDB_renamed.fasta -o rrnDB_{date}.fasta
+
+# Copy the two needed files to the folder for building the database
+cp rrnDB_{date}.fasta ../EMU_db_files/
+cp rrnDB_seq2taxid.txt ../EMU_db_files/
+
+
+
+
+################# NCBI #################
+
+cd ../NCBI
+
+#download database
+ update_blastdb.pl --decompress 16S_ribosomal_RNA
+#retrieve fasta
+blastdbcmd -entry all -db <path_to_db>/16S_ribosomal_RNA -out ncbi_16S.fasta
+
+#get fasta headers
+seqkit seq -n ncbi_16S_{date}.fasta > ncbi_16S_header.txt
+
+#get the RefSeq numbers from each header
+cat ncbi_16S_header.txt | csvtk add-header -t -n fasta_header | csvtk mutate -t -f 1 -p "([^\s]+)" -n refSeq > ncbi_16S_header_refseq.txt
+
+#Use refSeq numbers to get taxid
+cat ncbi_16S_header_refseq.txt | csvtk cut -t -f 2 | csvtk del-header -t | epost -db nuccore | esummary -db nuccore | xtract -pattern DocumentSummary -element AccessionVersion,TaxId > refseq2taxid.txt
+
+csvtk add-header -t -n refSeq,taxid refseq2taxid.txt > refseq2taxid2.txt
+
+# Any seqs where the RefSeq record was suppressed will be removed from the list (this shouldn't change anything as long as your fasta file is current)
+csvtk join -t -f refSeq ncbi_16S_header_refseq.txt refseq2taxid2.txt | csvtk cut -t -f 1,3 |csvtk del-header -t > ncbi_seq2taxid.txt
+
+# Copy the two needed files to the folder for building the database
+cp ncbi_16S_{date}.fasta ../EMU_db_files/
+cp ncbi_seq2taxid.txt ../EMU_db_files/
+
+
+
+
+################# EMU #################
+#Combine the corresponding files for each database to get the final seq2taxid and fasta files.
+cd ../EMU_db_files/
+
+cat rrnDB_seq2taxid.txt ncbi_seq2taxid.txt > seq2taxid.txt
+cat rrnDB_{date}.fasta ncbi_16S_{date}.fasta > 16S_seq.fasta
+
+## Create the taxonomy file
+# Tell taxonkit where to find taxdump
+export TAXONKIT_DB={path to taxdump}/taxdump
+
+# Build taxonomy.tsv
+csvtk cut -t -f 2 seq2taxid.txt \
+    | taxonkit lineage \
+    | taxonkit reformat -t -f "{k}\t{p}\t{c}\t{o}\t{f}\t{g}\t{s}" \
+    | csvtk cut -t -f -2 \
+    | csvtk add-header -t -n taxid,kingdom,phylum,class,order,family,genus,species,t_kingdom,t_phylum,t_class,t_order,t_family,t_genus,t_species -o taxonomy.tsv
+
+## Build the database
+cd ..
+emu build-database <db_name> --sequences EMU_db_files/16S_seq.fasta --seq2tax EMU_db_files/seq2taxid.txt --taxonomy-list EMU_db_files/taxonomy.tsv
+
+
+
+## Create the sintax database
+#Convert the previous EMU database to Sintax format 
+#Retrieve all the sequence headers from the EMU database fasta file
+
+cd {EMU DB name}
+
+seqkit seq species_taxid.fasta -n > name_list.txt
