@@ -182,20 +182,20 @@ if [ $MULTI_LENGTH == "FALSE" ]; then
     ARRAY_SEQUENCE=$(IFS=,; echo "${BARCODE_SEQUENCE[*]}")
     
     cat << EOF > NanoFilt_2_slurm.sh
-    #!/bin/bash
+#!/bin/bash
 
-    #SBATCH --time=0-${JOB_TIME}:00:00  # max job runtime
-    #SBATCH --cpus-per-task=$QC_THREADS  # number of processor cores
-    #SBATCH --nodes=1  # number of nodes
-    #SBATCH --mem=200G  # max memory
-    #SBATCH -J "NanoFilt_2"  # job name
-    #SBATCH --mail-user=$EMAIL  # email address
-    #SBATCH --mail-type=END
-    #SBATCH --mail-type=FAIL
-    #SBATCH --array=$ARRAY_SEQUENCE
+#SBATCH --time=0-${JOB_TIME}:00:00  # max job runtime
+#SBATCH --cpus-per-task=$QC_THREADS  # number of processor cores
+#SBATCH --nodes=1  # number of nodes
+#SBATCH --mem=200G  # max memory
+#SBATCH -J "NanoFilt_2"  # job name
+#SBATCH --mail-user=$EMAIL  # email address
+#SBATCH --mail-type=END
+#SBATCH --mail-type=FAIL
+#SBATCH --array=$ARRAY_SEQUENCE
 
-    WORK_DIR=$WORK_DIR
-    cd $WORK_DIR/4_NanoFilt_2
+WORK_DIR=$WORK_DIR
+cd $WORK_DIR/4_NanoFilt_2
 EOF
 
     if [ $CONDA == "conda" ]; then
@@ -210,21 +210,21 @@ EOF
     fi
 
     cat << EOF >> NanoFilt_2_slurm.sh
-    READ_DIR=$WORK_DIR/3_Demultiplex
+READ_DIR=$WORK_DIR/3_Demultiplex
 
-    STRICT_MIN_LENGTH=$MIN_LENGTH
-    STRICT_MAX_LENGTH=$MAX_LENGTH
-    STRICT_MIN_Q=$MIN_Q
+STRICT_MIN_LENGTH=$MIN_LENGTH
+STRICT_MAX_LENGTH=$MAX_LENGTH
+STRICT_MIN_Q=$MIN_Q
 
-    for n in {1..$LIBRARY};
+for n in {1..$LIBRARY};
 EOF
 
     cat << 'EOF' >> NanoFilt_2_slurm.sh
-    do
-        gunzip -c $READ_DIR/"$n"_*0"${SLURM_ARRAY_TASK_ID}".fastq.gz \
-            | NanoFilt --length $STRICT_MIN_LENGTH --maxlength $STRICT_MAX_LENGTH -q $STRICT_MIN_Q \
-            | gzip > "${n}"-"${SLURM_ARRAY_TASK_ID}".fastq.gz
-    done
+do
+    gunzip -c $READ_DIR/"$n"_*0"${SLURM_ARRAY_TASK_ID}".fastq.gz \
+        | NanoFilt --length $STRICT_MIN_LENGTH --maxlength $STRICT_MAX_LENGTH -q $STRICT_MIN_Q \
+        | gzip > "${n}"-"${SLURM_ARRAY_TASK_ID}".fastq.gz
+done
 EOF
 
 # If there are multiple primer sets/lengths then pull those variables from the config file
