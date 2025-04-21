@@ -52,6 +52,7 @@ If you have multiple primers in a library and are expecting different sequence l
 
 ```bash
 # run the script to generate the slurm batch script and submit it
+cd $WORK_DIR/scripts
 ./nanoplot_helper.sh
 
 # after it finishes use it to fill in the QC and Demux portion of the config file, based on your read distributions
@@ -77,7 +78,8 @@ If you have multiple libraries that have different barcodes but were run on the 
 
 ```bash
 # run the script to generate the slurm batch scripts and submit it
-# The slurm scripts in this job are run with dependencies so they have to run and finish in order 
+# The slurm scripts in this job are run with dependencies so they have to run and finish in order
+cd $WORK_DIR/scripts 
 ./QC_demultiplex.sh
 # If you need to re-run this because it failed at some step, just delete the failed folders and leave the successful ones,
 # it will only re-run the steps with empty folders
@@ -98,13 +100,14 @@ conda activate laca
 
 # Set up the files and folders for laca and generate the config file
 # Use -r to run the slurm script, leave off the flag to just regenerate the config file and slurm scripts
-scripts/laca_setup.sh -r
+cd $WORK_DIR/scripts
+./laca_setup.sh -r
 
 # go in and check the laca config file, especially the medaka version and the primers
 vim $WORK_DIR/5_laca/config.yaml
 
 # once you've checked your config file you can submit the slurm script
-cd slurm_scripts
+cd $WORK_DIR/slurm_scripts
 sbatch laca_run.sh
 
 conda deactivate
@@ -133,13 +136,14 @@ The `-o` and `-a` flags can only be run once the laca clustering is finished, as
 #   -h to print options
 
 # If running before the OTUs are done clustering
-scripts/taxonomy_assignment.sh -e -s
+cd $WORK_DIR/scripts
+./taxonomy_assignment.sh -e -s
 
 # Then run the OTUs once they're finished
-scripts/taxonomy_assignment.sh -o
+./taxonomy_assignment.sh -o
 
 # or if running everything at once
-scripts/taxonomy_assignment.sh -a
+./taxonomy_assignment.sh -a
 ```
 
 
@@ -173,5 +177,5 @@ Agrobacterium_tumefaciens_358
 
 ## Running the script
 
-Once you have the specified files you can run the `generate_consensus_otu_table.R` script in your preferred R interface. If you have a large dataset I recommend running it on a PC with a lot of RAM or on the hpc clusters using [Nova OnDemand](https://www.hpc.iastate.edu/guides/open-ondemand). You will have to go through and specify file locations and settings in the R script; these sections have comments telling you to edit them.
+Once you have the specified files you can run the `generate_consensus_otu_table.R` script in your preferred R interface. If you have a large dataset I recommend running it on a PC with a lot of RAM or on the HPC clusters using [Nova OnDemand](https://www.hpc.iastate.edu/guides/open-ondemand). You will have to go through and specify file locations and settings in the R script; these sections have comments telling you to edit them.
 
