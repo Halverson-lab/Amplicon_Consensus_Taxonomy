@@ -38,8 +38,8 @@ Run the environment setup script once. This will build all of your environments.
 
 ```bash
 # Go to work directory
-cd $WORK_DIR
-scripts/environment_setup.sh
+cd $WORK_DIR/scripts
+./environment_setup.sh
 ```
 
 ## Examining reads and setting quality control parameters.
@@ -52,7 +52,7 @@ If you have multiple primers in a library and are expecting different sequence l
 
 ```bash
 # run the script to generate the slurm batch script and submit it
-scripts/nanoplot_helper.sh
+./nanoplot_helper.sh
 
 # after it finishes use it to fill in the QC and Demux portion of the config file, based on your read distributions
 ```
@@ -78,12 +78,12 @@ If you have multiple libraries that have different barcodes but were run on the 
 ```bash
 # run the script to generate the slurm batch scripts and submit it
 # The slurm scripts in this job are run with dependencies so they have to run and finish in order 
-scripts/QC_demultiplex.sh
+./QC_demultiplex.sh
 # If you need to re-run this because it failed at some step, just delete the failed folders and leave the successful ones,
 # it will only re-run the steps with empty folders
 ```
 
-I recommend you inspect your reads after this step to check for potential issues, such as losing too many reads to filtering parameters or too many/too few reads in a barcode.
+I recommend you inspect your reads after this step to check for potential issues, such as losing too many reads to filtering parameters or too many/too few reads in a barcode. One option for inspecting them is by running `NanoPlot` again.
 
 ## Clustering 
  
