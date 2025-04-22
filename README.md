@@ -104,6 +104,7 @@ cd $WORK_DIR/scripts
 ./laca_setup.sh -r
 
 # go in and check the laca config file, especially the medaka version and the primers
+# the medaka version should be something like r1041_e82_400bps_sup_v4.1.0
 vim $WORK_DIR/5_laca/config.yaml
 
 # once you've checked your config file you can submit the slurm script
