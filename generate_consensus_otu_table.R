@@ -112,9 +112,17 @@ combine_taxonomy <- function(sample_id, sintax_df, emu_df){
            order = str_extract(taxon_CI, "(?<=o:)(.*?)\\,"),
            family = str_extract(taxon_CI, "(?<=f:)(.*?)\\,"),
            genus = str_extract(taxon_CI, "(?<=g:)(.*?)\\,"),
-           species = str_extract(taxon_CI, "(?<=s:).*")) %>%
-    separate_wider_regex(read_id, c(read_id = ".*?", "\\s+", run_info = ".*"))  %>% #pull the read id from the run info
-    select(-c(taxon_CI, run_info)) # get rid of taxon_CI and run_info, they're not used
+           species = str_extract(taxon_CI, "(?<=s:).*"))
+  
+  ## if the read id contains info from sequencing then remove that info
+  if(sum(str_detect(sintax_taxa$read_id, " ")) < 0){
+    sintax_taxa <- sintax_taxa %>%
+      separate_wider_regex(read_id, c(read_id = ".*?", "\\s+", run_info = ".*"))  %>% #pull the read id from the run info
+      select(-c(taxon_CI, run_info)) # get rid of taxon_CI and run_info, they're not used
+  } else {
+    sintax_taxa <- sintax_taxa %>%
+      select(-taxon_CI) # get rid of taxon_CI and run_info, they're not used
+  }
   
   ## Add otu to sintax and format
   sintax_otu <- left_join(sintax_taxa, otu_df, by = "read_id") %>% #join keeping all values of the sintax df
