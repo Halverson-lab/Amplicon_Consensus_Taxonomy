@@ -19,6 +19,9 @@ if [ $CONDA == "conda" ]; then
     conda env create --prefix ./taxonomy-env -f taxonomy.yaml
     cd $WORK_DIR/laca
     conda env create -n laca -f env.yaml 
+    conda activate laca
+    pip install --editable .
+    conda deactivate
     echo "Environments ready"
     
 elif [ $CONDA == "mamba" ]; then
@@ -28,6 +31,9 @@ elif [ $CONDA == "mamba" ]; then
     mamba env create --prefix ./taxonomy-env -f taxonomy.yaml
     cd $WORK_DIR/laca
     mamba env create -n laca -f env.yaml 
+    mamba activate laca
+    pip install --editable .
+    mamba deactivate
     echo "Environments ready"
     
 elif [ $CONDA == "micromamba" ]; then
@@ -37,6 +43,9 @@ elif [ $CONDA == "micromamba" ]; then
     micromamba env create --prefix ./taxonomy-env -f taxonomy.yaml
     cd $WORK_DIR/laca
     micromamba env create -n laca -f env.yaml 
+    micromamba activate laca
+    pip install --editable .
+    micromamba deactivate
     echo "Environments ready"
     
 else
