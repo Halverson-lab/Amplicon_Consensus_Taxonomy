@@ -290,7 +290,7 @@ rule meshclust:
           meshclust -d {input} -o {output} -c {threads} {params.t} > {log} 2>&1
           # if meshclust fails due to threshold > 0.99 then re-run with threshold at 0.99
           if [! -f {output} ]; then
-            a=$(awk ' /^Final threshold:/ {if ( $NF+0 > 0.99 ) print $NF } ' {log})
+            a=$(awk ' /^Final threshold:/ {{if ( $NF+0 > 0.99 ) print $NF }} ' {log})
             if [ ! -z "$a" ]; then
               meshclust -d {input} -o {output} -c {threads} -t 0.99 > {log} 2>&1
             fi
