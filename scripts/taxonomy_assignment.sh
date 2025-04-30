@@ -64,6 +64,10 @@ if [[ ! -e 6_emu ]]; then
     mkdir 6_emu
 fi
 
+if [[ ! -e 6_emu/read_assignments ]]; then
+    mkdir 6_emu/read_assignments
+fi
+
 if [[ ! -e 7_sintax ]]; then
     mkdir 7_sintax
 fi
@@ -126,7 +130,9 @@ do
         $READ_DIR/"${n}"-"${SLURM_ARRAY_TASK_ID}".fastq.gz \
         --db $EMU_DB \
         --output-dir "${n}"-"${SLURM_ARRAY_TASK_ID}" \
-        --output-basename "${n}"-"${SLURM_ARRAY_TASK_ID}" \
+        --output-basename "${n}"-"${SLURM_ARRAY_TASK_ID}" 
+        
+    cp "${n}"-"${SLURM_ARRAY_TASK_ID}"/"${n}"-"${SLURM_ARRAY_TASK_ID}"_read-assignment-distributions.tsv $WORK_DIR/read_assignments
 done
 EOF
 
