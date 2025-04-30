@@ -139,7 +139,7 @@ cat << EOF > laca_run.sh
 #SBATCH --time=$LACA_JOB_TIME-0:00:00  # max job runtime
 #SBATCH --cpus-per-task=$SLURM_MAX_CPUS  # number of processor cores
 #SBATCH --nodes=1  # number of nodes
-#SBATCH --mem=200G  # max memory
+#SBATCH --mem=$SLURM_MAX_MEM  # max memory
 #SBATCH -J "laca_run"  # job name
 #SBATCH --mail-user=$EMAIL  # email address
 #SBATCH --mail-type=END
