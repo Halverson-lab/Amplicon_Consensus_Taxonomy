@@ -86,6 +86,7 @@ DEMUX_JOB_TIME=6
 LACA_DIR=/work/larryh/ashleyp1/Amplicon_Consensus_Taxonomy/laca
 MAX_JOBS=64 #max LACA will use for one task
 SLURM_MAX_CPUS=128 #Must be greater than MAX_JOBS. Depends on number of reads but more will speed up the slower parts signifcantly
+SLURM_MAX_MEM=500G
 LACA_JOB_TIME=7 #Number of days, (more reads = more time)
 
 
