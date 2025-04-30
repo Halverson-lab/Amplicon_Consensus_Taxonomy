@@ -201,7 +201,7 @@ cat << EOF > Sintax_OTU_slurm.sh
 #SBATCH --mail-type=FAIL
 
 
-cd $WORK_DIR/8_OTU_sintax
+cd $WORK_DIR/5_laca
 ENV_DIR=$WORK_DIR/envs
 READ_DIR=$WORK_DIR/5_laca
 SINTAX_DB=$SINTAX_DB
