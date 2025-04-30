@@ -154,18 +154,18 @@ cd $WORK_DIR/scripts
 
 The final OTU table is generated using R. To make things easier I recommend saving all the necessary files in one folder, otherwise you can hardcode the locations in the R file.
 
-`seqID_to_otu.tsv` and `sintax_OTUs.tsv` from `5_LACA`
+`seqID_to_otu.tsv` and `sintax_OTUs.tsv` from `5_laca`
 
 `taxonomy.tsv` from the EMU database you used for the taxonomy assignments
 
 Make a folder of all of the EMU read assignments (*_read-assignment-distributions.tsv) and a folder of all the sintax outputs.
 
-Prepare a csv that lists each sample ID (library-barcode 1-HL01) and whether or not it is gnotobiotic (T or F), in the format shown below.
+Prepare a csv that lists each sample ID (library-barcode 1-1) and whether or not it is gnotobiotic (T or F), in the format shown below.
 
 ```
 barcode,gnotobiotic
-1-HL01,T
-1-HL02,T
+1-1,T
+1-2,T
 ```
 
 if you're using a SynCom then prepare another file that lists the species name with taxid for each member (the names must be in the same format as the Emu database).
