@@ -2,8 +2,7 @@
 
 # taxid refers to the NCBI taxonomy ID
 
-# Sample naming conventions assumes "library"-HL0"barcode", so 1-HL01 is library 1 barcode 2 and 3-HL056 would be library 3 barcode 56
-# HL0 naming is from the Srivathsan barcodes, if you used a different naming convention then edit the file names in the section on looping through files
+# Sample naming conventions assumes "library"-"barcode", so 1-2 is library 1 barcode 2 and 3-56 would be library 3 barcode 56
 # Files from the ACT pipeline should have the correct names already
 
 # packages and options
@@ -259,15 +258,15 @@ combine_taxonomy <- function(sample_id, sintax_df, emu_df){
 
 for(plate_num in 1:4){
   for(barcode in 1:72){
-    # check if emu file exists for sample, looks for a file in the following format 1-HL01_read-assignment-distributions.tsv
-    if(file.exists(paste0(emu_path, plate_num, "-HL0", barcode, "_read-assignment-distributions.tsv"))){
+    # check if emu file exists for sample, looks for a file in the following format 1-1_read-assignment-distributions.tsv
+    if(file.exists(paste0(emu_path, plate_num, "-", barcode, "_read-assignment-distributions.tsv"))){
       
       # read in emu and sintax files
-      emu_file <- read_tsv(paste0(emu_path, plate_num, "-HL0", barcode, "_read-assignment-distributions.tsv"))
+      emu_file <- read_tsv(paste0(emu_path, plate_num, "-", barcode, "_read-assignment-distributions.tsv"))
       sintax_file <- read_tsv(paste0(sintax_path, plate_num, "-", barcode, "_sintax.tsv"), col_names = FALSE)
       
-      #save the sample id (1-HL01, etc.)
-      sample_id <- paste0(plate_num, "-HL0", barcode)
+      #save the sample id (1-1, etc.)
+      sample_id <- paste0(plate_num, "-", barcode)
       
       # run the combine taxonomy function with the objects just generated and save the output
       output_df <- combine_taxonomy(sample_id, sintax_file, emu_file)
