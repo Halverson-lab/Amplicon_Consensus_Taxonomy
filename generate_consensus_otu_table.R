@@ -114,7 +114,7 @@ combine_taxonomy <- function(sample_id, sintax_df, emu_df){
            species = str_extract(taxon_CI, "(?<=s:).*"))
   
   ## if the read id contains info from sequencing then remove that info
-  if(sum(str_detect(sintax_taxa$read_id, " ")) < 0){
+  if(sum(str_detect(sintax_taxa$read_id, " ")) > 0){
     sintax_taxa <- sintax_taxa %>%
       separate_wider_regex(read_id, c(read_id = ".*?", "\\s+", run_info = ".*"))  %>% #pull the read id from the run info
       select(-c(taxon_CI, run_info)) # get rid of taxon_CI and run_info, they're not used
