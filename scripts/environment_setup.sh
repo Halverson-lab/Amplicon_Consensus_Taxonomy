@@ -14,7 +14,7 @@ cd $WORK_DIR/envs
 
 if [ $CONDA == "conda" ]; then
     eval "$(conda shell hook --shell bash)"
-    conda env create --prefix ./nanoplot-env -f NanoPlot.yaml
+    conda env create --prefix ./nanoplot-env -f nanoplot.yaml
     conda env create --prefix ./cutadapt-env -f cutadapt.yaml
     conda env create --prefix ./taxonomy-env -f taxonomy.yaml
     cd $WORK_DIR/laca
@@ -26,7 +26,7 @@ if [ $CONDA == "conda" ]; then
     
 elif [ $CONDA == "mamba" ]; then
     eval "$(mamba shell hook --shell bash)"
-    mamba env create --prefix ./nanoplot-env -f NanoPlot.yaml
+    mamba env create --prefix ./nanoplot-env -f nanoplot.yaml
     mamba env create --prefix ./cutadapt-env -f cutadapt.yaml
     mamba env create --prefix ./taxonomy-env -f taxonomy.yaml
     cd $WORK_DIR/laca
@@ -38,7 +38,7 @@ elif [ $CONDA == "mamba" ]; then
     
 elif [ $CONDA == "micromamba" ]; then
     eval "$(micromamba shell hook --shell bash)"
-    micromamba env create --prefix ./nanoplot-env -f NanoPlot.yaml
+    micromamba env create --prefix ./nanoplot-env -f nanoplot.yaml
     micromamba env create --prefix ./cutadapt-env -f cutadapt.yaml
     micromamba env create --prefix ./taxonomy-env -f taxonomy.yaml
     cd $WORK_DIR/laca
