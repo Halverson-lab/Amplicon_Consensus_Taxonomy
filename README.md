@@ -34,7 +34,7 @@ mv config.txt scripts/
 
 ## Set up the environment
 
-Run the environment setup script once. This will build all of your environments. Most of these environments will be saved in the `envs` folder.
+Run the environment setup script once. This will build all of your environments. Most of these environments will be saved in the `envs` folder. You will need to input "Y" several times to confirm the installation. Users may receive a pip warning regarding the laca installation, but this warning can be disregarded.
 
 ```bash
 # Go to work directory
@@ -89,7 +89,7 @@ I recommend you inspect your reads after this step to check for potential issues
 
 ## Clustering 
  
- Reads are clustered using [LACA](https://github.com/yanhui09/laca). This step can be time consuming, depending on how large your read set is. `LACA` requires all of the reads copied into a specific file structure. The `laca_setup.sh` script will generate a slurm script to move all files, and will submit the script if the `-r` flag is used. The setup script will also generate the `LACA` config file. This config file needs to be manually checked to ensure its correct. Once you have checked it, you can manually submit the `laca_run.sh` slurm script. 
+ Reads are clustered using [LACA](https://github.com/yanhui09/laca). This step can be time consuming, depending on how large your read set is. `LACA` requires all of the reads copied into a specific file structure. The `laca_setup.sh` script will generate a slurm script to move all files, and will submit the script if the `-r` flag is used. Some modifications had to be made to laca, these changes are in the `laca_changes` directory and will be automatically applied by the laca setup script. Finally, the setup script will generate the `LACA` config file. This config file needs to be manually checked to ensure its correct. Once you have checked it, you can manually submit the `laca_run.sh` slurm script. 
 
  If the clustering fails or times out you can resubmit the `laca_run.sh` slurm and it will resume where it left off.
 
@@ -119,11 +119,8 @@ conda deactivate
 
 The taxonomic assignments are done with `sintax` and `EMU`. This step can be started while `LACA` is still running, using the flags to submit only the selected scripts. The databases for 16S genes is provided, but there is a guide on how to regenerate them included. If working with known organisms, such as inoculating with a lab strain, then I recommend manually adding the corresponding sequences to the files. You can also provide custom databases, following the guidelines for creating an [EMU](https://github.com/treangenlab/emu) and [sintax](https://www.drive5.com/usearch/manual/cmd_sintax.html) database. The taxonomy databases folder also contains a taxonomy file formatted for [microeco](https://chiliubio.github.io/microeco_tutorial/), to make it easier to analyze data later.
 
-If using the included database, you need to unzip the database files because the raw fasta was too large to add to github. Once unzipped they are ready to edit and use.
+The fasta files for the taxonomy databases has to be gzipped due to github file size limits. These files will be unzipped by the `taxonomy_assignment.sh` script. If you are providing your own files, make sure they follow the same formatting as they provided files and that the fasta files are unzipped, as EMU and sintax can't use gzipped fasta files.
 
-```bash
-gunzip taxonomy_databases/*.gz
-```
 
 The `-o` and `-a` flags can only be run once the laca clustering is finished, as they perform the taxonomic assignment of the OTUs. If you want to start runing the taxonomic assignments while LACA is running you can run it using the example below. 
 
