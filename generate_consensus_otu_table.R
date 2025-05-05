@@ -18,17 +18,17 @@ options("scipen"=999) # very important, keeps R from converting taxids to scient
 setwd("//las-dfs-01.las.iastate.edu/lss/research/larryh-lab/Ashley-P/Microbiome_sequencing")
 
 # file path to the emu and sintax outputs, location is relative to workdir
-  emu_path <- "Pipeline_output_files/6_emu/read_assignments/"
-  sintax_path <- "Pipeline_output_files/7_sintax/"
+  emu_path <- "Amplicon_Consensus_Taxonomy/6_emu/read_assignments/"
+  sintax_path <- "Amplicon_Consensus_Taxonomy/7_sintax/"
 
 # Read in the seqID to OTU table you generated
-  otu_df <- read_tsv("Pipeline_output_files/5_laca/quant/seqID_to_otu.tsv")
+  otu_df <- read_tsv("Amplicon_Consensus_Taxonomy/5_laca/quant/seqID_to_otu.tsv")
 
 # Read in the taxonomy assignments for the otus
-  otu_taxonomy_df <- read_tsv("Pipeline_output_files/5_laca/sintax_OTUs.tsv", col_names = FALSE)
+  otu_taxonomy_df <- read_tsv("Amplicon_Consensus_Taxonomy/5_laca/sintax_OTUs.tsv", col_names = FALSE)
 
-# Read in taxonomy for emu to reference
-  raw_taxon_table <- read_tsv("Pipeline_output_files/taxonomy.tsv")
+# Read in EMU's taxonomy table for reference
+  raw_taxon_table <- read_tsv("Amplicon_Consensus_Taxonomy/taxonomy_databases/taxonomy.tsv")
   
   
 #### Edit here - Load Sample info ####
@@ -42,7 +42,7 @@ syncom <- TRUE
 
 # If sample includes syncoms the include a tsv of column labeled species, containing species name with taxid of each member of the syncom 
 # species names must match format if genus_species_taxid, for example "Pseudomonas_putida_303"
-syncom_df <- read_tsv("marsc_species_list.tsv")
+syncom_df <- read_tsv("syncom_species_list.tsv")
 syncom_list <- syncom_df$species
 
 
