@@ -72,11 +72,14 @@ if [[ ! -e 7_sintax ]]; then
     mkdir 7_sintax
 fi
 
+#### if using the provided databases and they are still zipped then unzip them 
+if [[ -e sintax_db.fasta.gz ]]; then
+    gunzip taxonomy_databases/*.gz
+fi
+
+
 
 cd slurm_scripts
-
-
-
 ### Write the necessary slurm scripts
 
 JOB_TIME=$(($LIBRARY * 3))
