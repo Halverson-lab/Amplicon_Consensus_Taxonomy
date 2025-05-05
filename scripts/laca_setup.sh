@@ -40,6 +40,19 @@ fi
 
 cd $WORK_DIR
 
+
+################################################ Fix LACA files ################################################
+
+# Replace the clust.smk and quant.smk files
+cp $WORK_DIR/laca_changes/clust.smk $LACA_DIR/laca/workflow/rules/
+cp $WORK_DIR/laca_changes/quant.smk $LACA_DIR/laca/workflow/rules/
+
+# In the /laca/laca/workflow/envs directory, modify the yacrd.yaml file to specify minimap2=2.18
+# In the /laca/laca/workflow/envs directory, modify the medaka.yaml file to change the order of the channels to make conda-forge first, and specify samtools=1.11
+cp $WORK_DIR/laca_changes/medaka.yaml $LACA_DIR/laca/workflow/envs/
+cp $WORK_DIR/laca_changes/yacrd.yaml $LACA_DIR/laca/workflow/envs/
+
+
 ################################################ Prep LACA read_dir ################################################
 if [[ ! -e 5_laca ]]; then
     mkdir 5_laca
@@ -166,16 +179,3 @@ cat << EOF >> laca_run.sh
 laca run all -j $SLURM_MAX_CPUS
 
 EOF
-
-################################################ Fix LACA files ################################################
-
-
-# Replace the clust.smk and quant.smk files
-cp $WORK_DIR/laca_changes/clust.smk $LACA_DIR/laca/workflow/rules/
-cp $WORK_DIR/laca_changes/quant.smk $LACA_DIR/laca/workflow/rules/
-
-# In the /laca/laca/workflow/envs directory, modify the yacrd.yaml file to specify minimap2=2.18
-# In the /laca/laca/workflow/envs directory, modify the medaka.yaml file to change the order of the channels to make conda-forge first, and specify samtools=1.11
-cp $WORK_DIR/laca_changes/medaka.yaml $LACA_DIR/laca/workflow/envs/
-cp $WORK_DIR/laca_changes/yacrd.yaml $LACA_DIR/laca/workflow/envs/
-
