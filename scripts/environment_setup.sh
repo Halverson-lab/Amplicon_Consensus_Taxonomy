@@ -17,6 +17,8 @@ if [ $CONDA == "conda" ]; then
     conda env create --prefix ./nanoplot-env -f nanoplot.yaml
     conda env create --prefix ./cutadapt-env -f cutadapt.yaml
     conda env create --prefix ./taxonomy-env -f taxonomy.yaml
+    conda env create --prefix ./database-env -f database_builder.yaml
+    
     cd $WORK_DIR/laca
     conda env create -n laca -f env.yaml 
     conda activate laca
@@ -29,6 +31,8 @@ elif [ $CONDA == "mamba" ]; then
     mamba env create --prefix ./nanoplot-env -f nanoplot.yaml
     mamba env create --prefix ./cutadapt-env -f cutadapt.yaml
     mamba env create --prefix ./taxonomy-env -f taxonomy.yaml
+    mamba env create --prefix ./database-env -f database_builder.yaml
+    
     cd $WORK_DIR/laca
     mamba env create -n laca -f env.yaml 
     mamba activate laca
@@ -41,6 +45,8 @@ elif [ $CONDA == "micromamba" ]; then
     micromamba env create --prefix ./nanoplot-env -f nanoplot.yaml
     micromamba env create --prefix ./cutadapt-env -f cutadapt.yaml
     micromamba env create --prefix ./taxonomy-env -f taxonomy.yaml
+    micromamba env create --prefix ./database-env -f database_builder.yaml
+    
     cd $WORK_DIR/laca
     micromamba env create -n laca -f env.yaml 
     micromamba activate laca
