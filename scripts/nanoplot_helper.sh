@@ -15,13 +15,13 @@ cd $WORK_DIR
 
 if [ $CONDA == "conda" ]; then
     eval "$(conda shell hook --shell bash)"
-    source activate $WORK_DIR/envs/nanoplot-env
+    source activate $ENV_DIR/nanoplot-env
 elif [ $CONDA == "mamba" ]; then
     eval "$(mamba shell hook --shell bash)"
-    mamba activate $WORK_DIR/envs/nanoplot-env
+    mamba activate $ENV_DIR/nanoplot-env
 elif [ $CONDA == "micromamba" ]; then
     eval "$(micromamba shell hook --shell bash)"
-    micromamba activate $WORK_DIR/envs/nanoplot-env
+    micromamba activate $ENV_DIR/nanoplot-env
 else
     echo "CONDA can be conda, mamba, or micromamba" 
     exit 1
@@ -60,13 +60,13 @@ EOF
 
 if [ $CONDA == "conda" ]; then
     echo 'eval "$(conda shell hook --shell bash)"' >> NanoPlot_slurm.sh
-    echo 'source activate $WORK_DIR/envs/nanoplot-env' >> NanoPlot_slurm.sh
+    echo 'source activate $ENV_DIR/nanoplot-env' >> NanoPlot_slurm.sh
 elif [ $CONDA == "mamba" ]; then
     echo 'eval "$(mamba shell hook --shell bash)"' >> NanoPlot_slurm.sh
-    echo 'mamba activate $WORK_DIR/envs/nanoplot-env' >> NanoPlot_slurm.sh
+    echo 'mamba activate $ENV_DIR/nanoplot-env' >> NanoPlot_slurm.sh
 elif [ $CONDA == "micromamba" ]; then
     echo 'eval "$(micromamba shell hook --shell bash)"' >> NanoPlot_slurm.sh
-    echo 'micromamba activate $WORK_DIR/envs/nanoplot-env' >> NanoPlot_slurm.sh
+    echo 'micromamba activate $ENV_DIR/nanoplot-env' >> NanoPlot_slurm.sh
 fi
 
 cat << 'EOF' >> NanoPlot_slurm.sh
