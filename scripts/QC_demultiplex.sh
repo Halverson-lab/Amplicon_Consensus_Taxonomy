@@ -165,7 +165,7 @@ elif [ $CONDA == "micromamba" ]; then
 fi
 
 cat << 'EOF' >> Demux_slurm.sh
-cutadapt --revcomp --overlap $BARCODE_OVERLAP -j 16 -e 1 -a file:"${BARCODE_FILE}" -o "${SLURM_ARRAY_TASK_ID}"_demux-{name}.fastq.gz $READ_DIR/"${SLURM_ARRAY_TASK_ID}"_filt.fastq.gz
+cutadapt --revcomp --overlap $BARCODE_OVERLAP -j 16 -e $BARCODE_ERROR -a file:"${BARCODE_FILE}" -o "${SLURM_ARRAY_TASK_ID}"_demux-{name}.fastq.gz $READ_DIR/"${SLURM_ARRAY_TASK_ID}"_filt.fastq.gz
 EOF
 
 
