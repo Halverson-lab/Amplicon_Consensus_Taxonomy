@@ -68,6 +68,7 @@ BARCODE_FILE=/work/larryh/ashleyp1/Amplicon_Consensus_Taxonomy/barcodes.fasta
 
 # Generally should be your barcode length -1
 BARCODE_OVERLAP=12
+BARCODE_ERROR=1
 
 # Barcodes should be numbered and you put in the numbers you used
 # ({1..72}) is the range from 1 to 72
