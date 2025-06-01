@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash 
 #### LACA setup
 
 run_flag=0
@@ -67,7 +67,7 @@ fi
 cd $WORK_DIR/slurm_scripts
 
 cat << EOF > laca_file_setup.sh
-#!/bin/bash
+#!/bin/bash 
 
 #SBATCH --time=1-0:00:00  # max job runtime
 #SBATCH --cpus-per-task=16  # number of processor cores
@@ -147,7 +147,7 @@ laca init --dbdir $LACA_DIR \
 cd $WORK_DIR/slurm_scripts
 
 cat << EOF > laca_run.sh
-#!/bin/bash
+#!/bin/bash 
 
 #SBATCH --time=$LACA_JOB_TIME-0:00:00  # max job runtime
 #SBATCH --cpus-per-task=$SLURM_MAX_CPUS  # number of processor cores
