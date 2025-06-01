@@ -101,7 +101,7 @@ cat << EOF > EMU_slurm.sh
 
 
 cd $WORK_DIR/6_emu
-ENV_DIR=$WORK_DIR/envs
+ENV_DIR=$ENV_DIR
 WORK_DIR=$WORK_DIR/6_emu
 READ_DIR=$WORK_DIR/4_NanoFilt_2
 EMU_DB=$EMU_DB
@@ -156,7 +156,7 @@ cat << EOF > Sintax_slurm.sh
 
 
 cd $WORK_DIR/7_sintax
-ENV_DIR=$WORK_DIR/envs
+ENV_DIR=$ENV_DIR
 WORK_DIR=$WORK_DIR/7_sintax
 READ_DIR=$WORK_DIR/4_NanoFilt_2
 SINTAX_DB=$SINTAX_DB
@@ -211,7 +211,7 @@ cat << EOF > Sintax_OTU_slurm.sh
 
 
 cd $WORK_DIR/5_laca
-ENV_DIR=$WORK_DIR/envs
+ENV_DIR=$ENV_DIR
 READ_DIR=$WORK_DIR/5_laca
 SINTAX_DB=$SINTAX_DB
 EOF
