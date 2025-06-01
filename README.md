@@ -8,10 +8,10 @@ All of these scripts are written to produce and run slurm batch scripts. All scr
 
 ## Files needed
 
-First set up the environment by cloning the github repository into your working directory, i.e. `/work/larryh/user`.
+First set up the environment by cloning the github repository into your working directory, i.e. `/work/user`.
 
 ```bash
-git clone https://github.com/ashleyp1/Amplicon_Consensus_Taxonomy.git
+git clone https://github.com/Halverson-lab/Amplicon_Consensus_Taxonomy.git
 ```
 
 From here forward everything should be done in this folder. Move your raw read files into folder `0_raw_reads`. Raw reads files should be numbered at the beginning, starting with "1_". This number will be referred to as the library number.
@@ -89,7 +89,9 @@ I recommend you inspect your reads after this step to check for potential issues
 
 ## Clustering 
  
- Reads are clustered using [LACA](https://github.com/yanhui09/laca). This step can be time consuming, depending on how large your read set is. `LACA` requires all of the reads copied into a specific file structure. The `laca_setup.sh` script will generate a slurm script to move all files, and will submit the script if the `-r` flag is used. Some modifications had to be made to laca, these changes are in the `laca_changes` directory and will be automatically applied by the laca setup script. Finally, the setup script will generate the `LACA` config file. This config file needs to be manually checked to ensure its correct. Once you have checked it, you can manually submit the `laca_run.sh` slurm script. 
+ Reads are clustered using [LACA](https://github.com/yanhui09/laca). This step can be time consuming, depending on how large your read set is. This is a good time to ensure the path to `LACA` in the config.txt file is correct and matches where the environment_setup script installed `LACA`. `LACA` requires all of the reads copied into a specific file structure. The `laca_setup.sh` script will generate a slurm script to move all files, and will submit the script if the `-r` flag is used. If the `-r` flag is not used then users will need to manually submit the slurm script for re-organizing the files before `LACA` can be run. Some modifications had to be made to `LACA` in order for it to run, these changes are in the `laca_changes` directory and will be automatically applied by the laca setup script. 
+ 
+ The setup script will generate the `LACA` `config.yaml` file in the `5_laca` directory. This config file needs to be manually checked to ensure its correct. You will need to edit the primers in the quality control section, around line 42, and in the phylogenetic tree section, around line 178. Additionally, you need to check the medaka version model, around line 144, and ensure it matches the basecalling model of your sequences. Once you have checked it, you can manually submit the `laca_run.sh` slurm script. 
 
  If the clustering fails or times out you can resubmit the `laca_run.sh` slurm and it will resume where it left off.
 
