@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash 
 #### Nanoplot helper
 
 #user defined variables
@@ -40,7 +40,7 @@ fi
 cd slurm_scripts
 
 cat << EOF > NanoPlot_slurm.sh
-#!/bin/bash
+#!/bin/bash 
 #SBATCH --time=0-2:00:00  # max job runtime
 #SBATCH --cpus-per-task=8  # number of processor cores
 #SBATCH --nodes=1  # number of nodes
