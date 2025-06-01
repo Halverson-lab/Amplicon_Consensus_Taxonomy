@@ -135,8 +135,8 @@ cd $WORK_DIR/5_laca/
 
 # creates the config file for laca
 laca init --dbdir $LACA_DIR \
-    --workdir $WORK_DIR/5_LACA \
-    --demuxdir $WORK_DIR/5_LACA/demultiplexed_reads \
+    --workdir $WORK_DIR/5_laca \
+    --demuxdir $WORK_DIR/5_laca/demultiplexed_reads \
     --jobs-max $MAX_JOBS \
     --no-primer-check \
     --ont
