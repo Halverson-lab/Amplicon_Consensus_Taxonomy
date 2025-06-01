@@ -7,14 +7,18 @@ WORK_DIR=/work/larryh/ashleyp1/Amplicon_Consensus_Taxonomy
 
 #Conda type (options are conda, mamba, micromamba)
 CONDA=mamba
+ENV_DIR=/work/larryh/ashleyp1/Amplicon_Consensus_Taxonomy/envs
 
 #Number of libraries
 LIBRARY=2
 
 #Max number of unique barcodes 
 BARCODES=72
-
-
+# Barcodes should be numbered and you put in the numbers you used
+# ({1..72}) is the range from 1 to 72
+# ({1..3} {5..10}) is 1 2 3 5 6 7 8 9 10
+# (1 3 5 7 9 22) list individual barcodes like so
+BARCODE_SEQUENCE=({1..72})
 
 ################################### QC and Demux Parameters ###################################
 #CPUs/Threads
@@ -66,20 +70,41 @@ MINQ_3=12
 # cutadapt parameters
 BARCODE_FILE=/work/larryh/ashleyp1/Amplicon_Consensus_Taxonomy/barcodes.fasta
 
+# Minimum barcode overlap for cutadapt
 # Generally should be your barcode length -1
 BARCODE_OVERLAP=12
 BARCODE_ERROR=1
 
-# Barcodes should be numbered and you put in the numbers you used
-# ({1..72}) is the range from 1 to 72
-# ({1..3} {5..10}) is 1 2 3 5 6 7 8 9 10
-# (1 3 5 7 9 22) list individual barcodes like so
-BARCODE_SEQUENCE=({1..72})
-
-
 #number of hours for the slurm job, increase if it times out
 DEMUX_JOB_TIME=6 
 
+
+################################### Database Parameters ###################################
+# Users can use the provided database or modify it
+# if you wish to make a modified database and keep the original then make a copy and rename it
+DATABASE_DIR=/work/larryh/ashleyp1/Amplicon_Consensus_Taxonomy/Taxonomy_databases
+
+# URL of the latest rrnDB
+RRNDB=https://rrndb.umms.med.umich.edu/downloads/rrnDB-5.9_16S_rRNA.fasta.zip
+
+# if providing your own database, DATABASE_DIR should contain sequences.fasta and seq2tax.txt 
+# taxonomy.tsv will be updated using NCBI taxonomy
+
+# Files for adding user provided reads to the current database
+# fasta file of sequences to be added
+USER_SEQ=new_seq.fasta
+
+#2 column tab delimited file of sequence headers and taxids
+USER_SEQ2TAX=new_seq2taxid.txt
+
+#if adding taxids that do not exist in NCBI (such as synthetic sequences)
+#tab delimited file with taxid,kingdom,phylum,class,order,family,genus,species,t_kingdom,t_phylum,t_class,t_order,t_family,t_genus,t_species
+#for each new taxid (if taxid is already present in database then you can leave this empty)
+USER_TAX=new_taxids.tsv
+
+# File containing list of NCBI accessions (can be RefSeq assembly ids or nuceotide ids)
+# Will retrieve the annotated 16S genes from the assembled genome
+ACC_LIST=accessions_list.txt
 
 ################################### Taxonomy Parameters ###################################
 
@@ -98,3 +123,15 @@ SINTAX_THREADS=32
 #EMU parameters
 EMU_DB=/work/larryh/ashleyp1/Amplicon_Consensus_Taxonomy/Taxonomy_databases
 EMU_THREADS=32
+
+
+################################### Generate Consensus Parameters ###################################
+
+# is sample gnotobiotic? 2 column csv with every barcode and TRUE/FALSE for gnotobiotic
+GNOTO=gnotobiotic_sample_info.csv
+
+# Does the experiment use SynComs? Answer TRUE or FALSE
+SYNCOM=TRUE
+# If sample includes syncoms the include a tsv of column labeled species, containing species name with taxid of each member of the syncom 
+# species names must match format if genus_species_taxid, for example "Pseudomonas_putida_303"
+SYNCOM_SPECIES=syncom_species_list.tsv
