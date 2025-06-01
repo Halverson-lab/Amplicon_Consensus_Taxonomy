@@ -3,11 +3,11 @@
 EMAIL=ashleyp1@iastate.edu
 
 #Main work directory
-WORK_DIR=/work/larryh/ashleyp1/Amplicon_Consensus_Taxonomy
+WORK_DIR=/path/to/work/dir/Amplicon_Consensus_Taxonomy
 
 #Conda type (options are conda, mamba, micromamba)
 CONDA=mamba
-ENV_DIR=/work/larryh/ashleyp1/Amplicon_Consensus_Taxonomy/envs
+ENV_DIR=/path/to/dir/Amplicon_Consensus_Taxonomy/envs
 
 #Number of libraries
 LIBRARY=2
@@ -68,7 +68,7 @@ MINQ_3=12
 
 
 # cutadapt parameters
-BARCODE_FILE=/work/larryh/ashleyp1/Amplicon_Consensus_Taxonomy/barcodes.fasta
+BARCODE_FILE=/path/to/dir/Amplicon_Consensus_Taxonomy/barcodes.fasta
 
 # Minimum barcode overlap for cutadapt
 # Generally should be your barcode length -1
@@ -82,7 +82,7 @@ DEMUX_JOB_TIME=6
 ################################### Database Parameters ###################################
 # Users can use the provided database or modify it
 # if you wish to make a modified database and keep the original then make a copy and rename it
-DATABASE_DIR=/work/larryh/ashleyp1/Amplicon_Consensus_Taxonomy/Taxonomy_databases
+DATABASE_DIR=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases
 
 # URL of the latest rrnDB
 RRNDB=https://rrndb.umms.med.umich.edu/downloads/rrnDB-5.9_16S_rRNA.fasta.zip
@@ -92,24 +92,24 @@ RRNDB=https://rrndb.umms.med.umich.edu/downloads/rrnDB-5.9_16S_rRNA.fasta.zip
 
 # Files for adding user provided reads to the current database
 # fasta file of sequences to be added
-USER_SEQ=new_seq.fasta
+USER_SEQ=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases/new_seq.fasta
 
 #2 column tab delimited file of sequence headers and taxids
-USER_SEQ2TAX=new_seq2taxid.txt
+USER_SEQ2TAX=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases/new_seq2taxid.txt
 
 #if adding taxids that do not exist in NCBI (such as synthetic sequences)
 #tab delimited file with taxid,kingdom,phylum,class,order,family,genus,species,t_kingdom,t_phylum,t_class,t_order,t_family,t_genus,t_species
 #for each new taxid (if taxid is already present in database then you can leave this empty)
-USER_TAX=new_taxids.tsv
+USER_TAX=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases/new_taxids.tsv
 
 # File containing list of NCBI accessions (can be RefSeq assembly ids or nuceotide ids)
 # Will retrieve the annotated 16S genes from the assembled genome
-ACC_LIST=accessions_list.txt
+ACC_LIST=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases/accessions_list.txt
 
 ################################### Taxonomy Parameters ###################################
 
 #LACA Parameters
-LACA_DIR=/work/larryh/ashleyp1/Amplicon_Consensus_Taxonomy/laca
+LACA_DIR=/path/to/dir/Amplicon_Consensus_Taxonomy/laca
 MAX_JOBS=64 #max LACA will use for one task
 SLURM_MAX_CPUS=128 #Must be greater than MAX_JOBS. Depends on number of reads but more will speed up the slower parts signifcantly
 SLURM_MAX_MEM=500G
@@ -117,21 +117,21 @@ LACA_JOB_TIME=7 #Number of days, (more reads = more time)
 
 
 #Sintax Parameters
-SINTAX_DB=/work/larryh/ashleyp1/Amplicon_Consensus_Taxonomy/Taxonomy_databases/sintax_db.fasta
+SINTAX_DB=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases/sintax_db.fasta
 SINTAX_THREADS=32
 
 #EMU parameters
-EMU_DB=/work/larryh/ashleyp1/Amplicon_Consensus_Taxonomy/Taxonomy_databases
+EMU_DB=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases
 EMU_THREADS=32
 
 
 ################################### Generate Consensus Parameters ###################################
 
 # is sample gnotobiotic? 2 column csv with every barcode and TRUE/FALSE for gnotobiotic
-GNOTO=gnotobiotic_sample_info.csv
+GNOTO=/path/to/dir/Amplicon_Consensus_Taxonomy/sample_info/gnotobiotic_sample_info.csv
 
 # Does the experiment use SynComs? Answer TRUE or FALSE
 SYNCOM=TRUE
 # If sample includes syncoms the include a tsv of column labeled species, containing species name with taxid of each member of the syncom 
 # species names must match format if genus_species_taxid, for example "Pseudomonas_putida_303"
-SYNCOM_SPECIES=syncom_species_list.tsv
+SYNCOM_SPECIES=/path/to/dir/Amplicon_Consensus_Taxonomy/sample_info/syncom_species_list.tsv
