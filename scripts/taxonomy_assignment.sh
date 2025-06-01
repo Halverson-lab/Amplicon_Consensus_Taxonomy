@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash 
 #### Slurm scripts for EMU and Sintax
 
 all_flag=0
@@ -87,7 +87,7 @@ ARRAY_SEQUENCE=$(IFS=,; echo "${BARCODE_SEQUENCE[*]}")
 
 ################################################ EMU ################################################
 cat << EOF > EMU_slurm.sh
-#!/bin/bash
+#!/bin/bash 
 
 #SBATCH --time=0-$JOB_TIME:00:00  # max job runtime
 #SBATCH --cpus-per-task=$EMU_THREADS  # number of processor cores
@@ -142,7 +142,7 @@ EOF
 
 ################################################ Sintax samples ################################################
 cat << EOF > Sintax_slurm.sh
-#!/bin/bash
+#!/bin/bash 
 
 #SBATCH --time=0-$JOB_TIME:00:00  # max job runtime
 #SBATCH --cpus-per-task=$SINTAX_THREADS  # number of processor cores
@@ -198,7 +198,7 @@ EOF
 ################################################ Sintax OTUs ################################################
 
 cat << EOF > Sintax_OTU_slurm.sh
-#!/bin/bash
+#!/bin/bash 
 
 #SBATCH --time=0-$JOB_TIME:00:00  # max job runtime
 #SBATCH --cpus-per-task=$SINTAX_THREADS  # number of processor cores
