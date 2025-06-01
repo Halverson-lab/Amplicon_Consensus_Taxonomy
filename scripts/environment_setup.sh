@@ -10,7 +10,7 @@ git clone https://github.com/yanhui09/laca.git
 
 
 # Set up environments
-cd $WORK_DIR/envs
+cd $ENV_DIR
 
 if [ $CONDA == "conda" ]; then
     eval "$(conda shell hook --shell bash)"
