@@ -173,9 +173,9 @@ Agrobacterium_tumefaciens_358
 
 Once you have the specified files you can run the `generate_consensus.sh` script. You can run it in an interactive session with the `-r` flag or you can generate and submit a slurm script with the `-s` flag.
 
-```
+```bash
 generate_consensus.sh
-#Options:
+# Options:
 # -h, --help      Display this help message
 # -r, --run       Run function in current session
 # -s, --slurm     Generate and submit slurm script
