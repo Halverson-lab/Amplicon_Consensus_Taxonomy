@@ -1,21 +1,41 @@
 #!/bin/bash 
 #### LACA setup
 
-run_flag=0
-
-while getopts 'r' OPTION; do
-  case "$OPTION" in
-    r) run_flag=1
-      printf "slurm script submitted" >&2
-      ;;
-    ?)
-      printf "slurm script not submitted" >&2
-      ;;
-  esac
-done
-
 #user defined variables
 source config.txt
+
+echo "Setting up LACA and generating slurm scripts" >&2
+
+run_flag=false
+
+
+usage() {
+ echo "Usage: $0 [OPTIONS]"
+ echo "Options:"
+ echo " -h, --help      Display this help message"
+ echo " -r, --run       Submit the generated slurm script"
+}
+
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -r | --run) 
+      run_flag=true
+      echo "The slurm script will be submitted for you" >&2
+      ;;
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    \?)
+      echo "Invalid option" >&2
+      usage
+      exit 1
+      ;;
+  esac
+  shift
+done
+
 
 #throw error if any variables are missing from the config files
 [[ -z "$EMAIL" ]] && { echo "EMAIL is empty" ; exit 1; }
@@ -124,7 +144,7 @@ done
 
 EOF
 
-if [[ $run_flag -eq 1 ]]; then
+if [[ $run_flag == "true" ]]; then
     sbatch laca_file_setup.sh
 fi
 

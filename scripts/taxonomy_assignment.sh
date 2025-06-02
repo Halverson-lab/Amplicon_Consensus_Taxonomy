@@ -1,31 +1,59 @@
 #!/bin/bash 
 #### Slurm scripts for EMU and Sintax
 
-all_flag=0
-emu_flag=0
-otu_flag=0
-sintax_flag=0
+emu_flag=false
+otu_flag=false
+sintax_flag=false
 
-while getopts 'aeosh' OPTION; do
-  case "$OPTION" in
-    a) all_flag=1
+usage() {
+ echo "Usage: $0 [OPTIONS]"
+ echo "Options:"
+ echo " -h, --help      Display this help message"
+ echo " -a, --all       Run all taxonomic assignments (can only be performed after LACA is finished)"
+ echo " -e, --emu       Run EMU on samples"
+ echo " -s, --sintax    Run sintax on samples"
+ echo " -o, --otu       Run sintax on the LACA OTUs"
+}
+
+if [ $# -eq 0 ]; then
+  echo "Error: At least one flag is required."
+  usage
+  exit 1
+fi
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -a | --all) 
+      emu_flag=true
+      sintax_flag=true
+      otu_flag=true
+      echo "Running all taxonomic assignments" >&2
       ;;
-    e) emu_flag=1
+    -e | --emu)
+      emu_flag=true
+      echo "Running EMU on samples" >&2
       ;;
-    o) otu_flag=1
+    -s | --sintax) 
+      sintax_flag=true
+      echo "Running sintax on samples" >&2
       ;;
-    s) sintax_flag=1
+    -o | --otu)
+      otu_flag=true
+      echo "Running sintax on LACA OTUs" >&2
       ;;
-    h)
-      printf "script usage: -e to run EMU
-      -s to run sintax on samples
-      -o to run sintax on OTUs
-      -a to run all of the above
-      " >&2
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    \?)
+      echo "Invalid option" >&2
+      usage
       exit 1
       ;;
   esac
+  shift
 done
+
 
 #user defined variables
 source config.txt
@@ -243,26 +271,20 @@ EOF
 
 ################################################ submit slurm scripts ################################################
 
-if [[ $all_flag -eq 1 ]]; then
-    emu_flag=1
-    sintax_flag=1
-    otu_flag=1
-fi
-
-if [[ $emu_flag -eq 1 ]]; then
+if [[ $emu_flag == "true" ]]; then
     sbatch EMU_slurm.sh
 fi
 
-if [[ $sintax_flag -eq 1 ]]; then
+if [[ $sintax_flag == "true" ]]; then
     sbatch Sintax_slurm.sh
 fi
 
-if [[ $otu_flag -eq 1 ]]; then
+if [[ $otu_flag == "true" ]]; then
     if [[ -f $WORK_DIR/5_laca/rep_seqs.fasta ]]; then
         sbatch Sintax_OTU_slurm.sh
     else
-        echo "Cannot classify OTUs because LACA rep_seqs.fasta does not exist."
-        echo "Please make sure LACA has finished running before using -a or -o."
+        echo "Cannot classify OTUs because LACA rep_seqs.fasta does not exist." >&2
+        echo "Please make sure LACA has finished running before using -a or -o." >&2
         exit 1
     fi
 fi

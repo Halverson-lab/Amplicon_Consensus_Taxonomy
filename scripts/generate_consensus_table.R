@@ -1,26 +1,16 @@
 #!/usr/bin/env Rscript
 
-#--------Final pipeline to take EMU and sintax output and return normalized tables ready for analysis -----------------------
 
-# taxid refers to the NCBI taxonomy ID
-
-# Sample naming conventions assumes "library"-"barcode", so 1-2 is library 1 barcode 2 and 3-56 would be library 3 barcode 56
-# Files from the ACT pipeline should have the correct names already
-
-# packages and options
-if (!require('tidyverse')) install.packages('tidyverse')
-if (!require('readr')) install.packages('readr')
 library(readr)
 library(tidyverse)
 options("scipen"=999) # very important, keeps R from converting taxids to scientific notation
 
 #### Environment setup ####
+readRenviron("config.txt")
 
-workdir_var <- Sys.getenv("WORK_DIR")
-path_to_work_dir<-workdir_var[1]
+path_to_work_dir <- Sys.getenv("WORK_DIR")
 
-database_dir<- Sys.getenv("DATABASE_DIR")
-path_to_data_dir<-database_dir[1]
+path_to_data_dir <- Sys.getenv("DATABASE_DIR")
 
 path_to_gnoto <- Sys.getenv("GNOTO")
 
@@ -28,6 +18,10 @@ syncom <- Sys.getenv("SYNCOM")
 
 if(syncom == TRUE){
   path_to_syncom <- Sys.getenv("SYNCOM_SPECIES")
+  # If sample includes syncoms the include a tsv of column labeled species, containing species name with taxid of each member of the syncom 
+  # species names must match format if genus_species_taxid, for example "Pseudomonas_putida_303"
+  syncom_df <- read_tsv(path_to_syncom)
+  syncom_list <- syncom_df$species
 }
 
 #Number of libraries
@@ -59,18 +53,13 @@ gnotobiotic <- read_csv(path_to_gnoto)
 gnotobiotic <- column_to_rownames(gnotobiotic, var = "barcode")
 
 
-# If sample includes syncoms the include a tsv of column labeled species, containing species name with taxid of each member of the syncom 
-# species names must match format if genus_species_taxid, for example "Pseudomonas_putida_303"
-syncom_df <- read_tsv(path_to_syncom)
-syncom_list <- syncom_df$species
-
 
 #### Format dataframes, including the taxonomy dataframes. Do not edit, unless absolutely necessary ####
 
 #Format emu taxonomy reference
 # Paste the taxid id to the corresponding phylum level (Bactera_2, Pseudomonadota_1224, etc)
 emu_taxid_taxonomy <- raw_taxon_table %>%
-  mutate(domain = if_else(is.na(kingdom), NA, paste0(kingdom, "_", t_kingdom)),
+  mutate(domain = if_else(is.na(domain), NA, paste0(domain, "_", t_domain)),
          phylum = if_else(is.na(phylum), NA, paste0(phylum, "_", t_phylum)),
          class = if_else(is.na(class), NA, paste0(class, "_", t_class)),
          order = if_else(is.na(order), NA, paste0(order, "_", t_order)),
@@ -301,6 +290,7 @@ for(plate_num in 1:lib_num){
       }else{
         # after the first, append the output df onto the previous
         sample_id_df <- rbind(sample_id_df, output_df)
+      }
     }
   }
 }
