@@ -22,6 +22,7 @@ if [ $CONDA == "conda" ]; then
     [[ ! -e $ENV_DIR/cutadapt-env ]] && { conda env create --prefix ./cutadapt-env -f cutadapt.yaml; }
     [[ ! -e $ENV_DIR/taxonomy-env ]] && { conda env create --prefix ./taxonomy-env -f taxonomy.yaml; }
     [[ ! -e $ENV_DIR/database-env ]] && { conda env create --prefix ./database-env -f database.yaml; }
+    [[ ! -e $ENV_DIR/consensus-env ]] && { conda env create --prefix ./consensus-env -f consensus.yaml; }
     
     #prep laca env
     if [ -z "$( ls -A $LACA_DIR )" ]; then
@@ -45,6 +46,7 @@ elif [ $CONDA == "mamba" ]; then
     [[ ! -e $ENV_DIR/cutadapt-env ]] && { mamba env create --prefix ./cutadapt-env -f cutadapt.yaml; }
     [[ ! -e $ENV_DIR/taxonomy-env ]] && { mamba env create --prefix ./taxonomy-env -f taxonomy.yaml; }
     [[ ! -e $ENV_DIR/database-env ]] && { mamba env create --prefix ./database-env -f database.yaml; }
+    [[ ! -e $ENV_DIR/consensus-env ]] && { mamba env create --prefix ./consensus-env -f consensus.yaml; }
     
     #prep laca env
     if [ -z "$( ls -A $LACA_DIR )" ]; then
@@ -68,6 +70,7 @@ elif [ $CONDA == "micromamba" ]; then
     [[ ! -e $ENV_DIR/cutadapt-env ]] && { micromamba env create --prefix ./cutadapt-env -f cutadapt.yaml; }
     [[ ! -e $ENV_DIR/taxonomy-env ]] && { micromamba env create --prefix ./taxonomy-env -f taxonomy.yaml; }
     [[ ! -e $ENV_DIR/database-env ]] && { micromamba env create --prefix ./database-env -f database.yaml; }
+    [[ ! -e $ENV_DIR/consensus-env ]] && { micromamba env create --prefix ./consensus-env -f consensus.yaml; }
     
     #prep laca env
     if [ -z "$( ls -A $LACA_DIR )" ]; then
@@ -94,4 +97,5 @@ cp ./* $ENV_DIR/nanoplot-env/bin/
 cp ./* $ENV_DIR/cutadapt-env/bin/
 cp ./* $ENV_DIR/taxonomy-env/bin/
 cp ./* $ENV_DIR/database-env/bin/
+cp ./* $ENV_DIR/consensus-env/bin/
 echo "Environments are ready"
