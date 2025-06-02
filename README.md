@@ -42,6 +42,21 @@ chmod +x ./environment_setup.sh
 conda activate ACT-env
 ```
 
+## Database builder
+
+User can use the provided database or construct their own. If using the provided database then skip to the next section. 
+
+```bash
+database_builder.sh
+
+# Options:
+#  -h, --help      Display this help message
+#  -b, --build     Build new database
+#  -d, --default   Build new database from latest NCBI 16S RefSeq and rrnDB
+#  -a, --add       Add user provided sequences to database
+#  -n, --ncbi      Add sequences to database using list of NCBI accesions
+```
+
 ## Examining reads and setting quality control parameters.
 
 The parameters you set for filtering should be based on what your read set looks like. Inspect your reads with your preferred tool. I've included a optional script for running NanoPlot, since that is my preferred tool. 
