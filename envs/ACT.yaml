@@ -1,0 +1,8 @@
+name: ACT-env
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python
+  - wget

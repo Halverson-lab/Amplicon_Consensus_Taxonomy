@@ -1,0 +1,16 @@
+name: database-env
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - gsutil
+  - blast
+  - entrez-direct
+  - seqkit
+  - csvtk
+  - taxonkit
+  - emu
+  - r-base
+  - r-tidyverse
+  - r-gsubfn
