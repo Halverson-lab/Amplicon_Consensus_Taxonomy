@@ -1,0 +1,97 @@
+#!/bin/bash 
+#### Set up the environments
+
+#user defined variables
+source config.txt
+
+# Clone LACA
+cd $WORK_DIR
+if [ -z "$( ls -A $LACA_DIR )" ]; then
+    cd "$(dirname "$LACA_DIR")"
+    git clone https://github.com/yanhui09/laca.git
+fi
+
+
+# Set up environments
+cd $ENV_DIR
+
+if [ $CONDA == "conda" ]; then
+    eval "$(conda shell hook --shell bash)"
+    [[ -z "$(conda list --name ACT-env)" ]] && { conda env create -n ACT-env -f ACT.yaml; }
+    [[ ! -e $ENV_DIR/nanoplot-env ]] && { conda env create --prefix ./nanoplot-env -f nanoplot.yaml; }
+    [[ ! -e $ENV_DIR/cutadapt-env ]] && { conda env create --prefix ./cutadapt-env -f cutadapt.yaml; }
+    [[ ! -e $ENV_DIR/taxonomy-env ]] && { conda env create --prefix ./taxonomy-env -f taxonomy.yaml; }
+    [[ ! -e $ENV_DIR/database-env ]] && { conda env create --prefix ./database-env -f database.yaml; }
+    
+    #prep laca env
+    if [ -z "$( ls -A $LACA_DIR )" ]; then
+        cd $LACA_DIR
+        conda env create -n laca -f env.yaml 
+        conda activate laca
+        pip install --editable .
+        conda deactivate
+    fi
+    
+    #put the ACT scripts in the path
+    conda activate ACT-env
+    cd $WORK_DIR/scripts
+    chmod +x `ls`
+    cp ./* $CONDA_PREFIX/bin/
+    
+elif [ $CONDA == "mamba" ]; then
+    eval "$(mamba shell hook --shell bash)"
+    [[ -z "$(conda list --name ACT-env)" ]] && { mamba env create -n ACT-env -f ACT.yaml; }
+    [[ ! -e $ENV_DIR/nanoplot-env ]] && { mamba env create --prefix ./nanoplot-env -f nanoplot.yaml; }
+    [[ ! -e $ENV_DIR/cutadapt-env ]] && { mamba env create --prefix ./cutadapt-env -f cutadapt.yaml; }
+    [[ ! -e $ENV_DIR/taxonomy-env ]] && { mamba env create --prefix ./taxonomy-env -f taxonomy.yaml; }
+    [[ ! -e $ENV_DIR/database-env ]] && { mamba env create --prefix ./database-env -f database.yaml; }
+    
+    #prep laca env
+    if [ -z "$( ls -A $LACA_DIR )" ]; then
+        cd $LACA_DIR
+        mamba env create -n laca -f env.yaml 
+        mamba activate laca
+        pip install --editable .
+        mamba deactivate
+    fi
+    
+    #put the ACT scripts in the path
+    mamba activate ACT-env
+    cd $WORK_DIR/scripts
+    chmod +x `ls`
+    cp ./* $CONDA_PREFIX/bin/
+    
+elif [ $CONDA == "micromamba" ]; then
+    eval "$(micromamba shell hook --shell bash)"
+    [[ -z "$(conda list --name ACT-env)" ]] && { micromamba env create -n ACT-env -f ACT.yaml; }
+    [[ ! -e $ENV_DIR/nanoplot-env ]] && { micromamba env create --prefix ./nanoplot-env -f nanoplot.yaml; }
+    [[ ! -e $ENV_DIR/cutadapt-env ]] && { micromamba env create --prefix ./cutadapt-env -f cutadapt.yaml; }
+    [[ ! -e $ENV_DIR/taxonomy-env ]] && { micromamba env create --prefix ./taxonomy-env -f taxonomy.yaml; }
+    [[ ! -e $ENV_DIR/database-env ]] && { micromamba env create --prefix ./database-env -f database.yaml; }
+    
+    #prep laca env
+    if [ -z "$( ls -A $LACA_DIR )" ]; then
+        cd $LACA_DIR
+        micromamba env create -n laca -f env.yaml 
+        micromamba activate laca
+        pip install --editable .
+        micromamba deactivate
+    fi
+    
+    #put the ACT scripts in the path
+    micromamba activate ACT-env
+    cd $WORK_DIR/scripts
+    chmod +x `ls`
+    cp ./* $CONDA_PREFIX/bin/
+    
+else
+    echo "CONDA can be conda, mamba, or micromamba" 
+    exit 1
+fi
+
+cd $WORK_DIR/scripts
+cp ./* $ENV_DIR/nanoplot-env/bin/
+cp ./* $ENV_DIR/cutadapt-env/bin/
+cp ./* $ENV_DIR/taxonomy-env/bin/
+cp ./* $ENV_DIR/database-env/bin/
+echo "Environments are ready"
