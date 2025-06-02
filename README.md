@@ -26,20 +26,20 @@ cp example_config.txt config.txt
 
 # edit the config file with preferred text editor
 vim config.txt
-
-# move the updated config file to the scripts folder
-mv config.txt scripts/
 ```
 
 
 ## Set up the environment
 
-Run the environment setup script once. This will build all of your environments. Most of these environments will be saved in the `envs` folder. You will need to input "Y" several times to confirm the installation. Users may receive a pip warning regarding the laca installation, but this warning can be disregarded.
+Run the environment setup script once. This will build all of your environments. Most of these environments will be saved in the `envs` folder. You will need to input "Y" several times to confirm the installation. Users may receive a pip warning regarding the laca installation, but this warning can be disregarded. This script can be re-run if needed. 
 
 ```bash
 # Go to work directory
-cd $WORK_DIR/scripts
+cd $WORK_DIR/
+chmod +x ./environment_setup.sh
 ./environment_setup.sh
+
+conda activate ACT-env
 ```
 
 ## Examining reads and setting quality control parameters.
@@ -52,8 +52,8 @@ If you have multiple primers in a library and are expecting different sequence l
 
 ```bash
 # run the script to generate the slurm batch script and submit it
-cd $WORK_DIR/scripts
-./nanoplot_helper.sh
+cd $WORK_DIR
+nanoplot_helper.sh
 
 # after it finishes use it to fill in the QC and Demux portion of the config file, based on your read distributions
 ```
@@ -79,8 +79,8 @@ If you have multiple libraries that have different barcodes but were run on the 
 ```bash
 # run the script to generate the slurm batch scripts and submit it
 # The slurm scripts in this job are run with dependencies so they have to run and finish in order
-cd $WORK_DIR/scripts 
-./QC_demultiplex.sh
+cd $WORK_DIR
+QC_demultiplex.sh
 # If you need to re-run this because it failed at some step, just delete the failed folders and leave the successful ones,
 # it will only re-run the steps with empty folders
 ```
@@ -102,8 +102,8 @@ conda activate laca
 
 # Set up the files and folders for laca and generate the config file
 # Use -r to run the slurm script, leave off the flag to just regenerate the config file and slurm scripts
-cd $WORK_DIR/scripts
-./laca_setup.sh -r
+cd $WORK_DIR
+laca_setup.sh -r
 
 # go in and check the laca config file, especially the medaka version and the primers
 # the medaka version should be something like r1041_e82_400bps_sup_v4.1.0
@@ -128,22 +128,23 @@ The `-o` and `-a` flags can only be run once the laca clustering is finished, as
 
 ```bash
 # Use the flags to choose to run the slurm scripts or not
-# script usage: 
-#   -e to run EMU
-#   -s to run sintax on samples
-#   -o to run sintax on OTUs
-#   -a to run all of the above
-#   -h to print options
+#Options:
+# -h, --help      Display this help message
+# -a, --all       Run all taxonomic assignments (can only be performed after LACA is finished)
+# -e, --emu       Run EMU on samples
+# -s, --sintax    Run sintax on samples
+# -o, --otu       Run sintax on the LACA OTUs
+
 
 # If running before the OTUs are done clustering
-cd $WORK_DIR/scripts
-./taxonomy_assignment.sh -e -s
+cd $WORK_DIR
+taxonomy_assignment.sh -e -s
 
 # Then run the OTUs once they're finished
-./taxonomy_assignment.sh -o
+taxonomy_assignment.sh -o
 
 # or if running everything at once
-./taxonomy_assignment.sh -a
+taxonomy_assignment.sh -a
 ```
 
 
@@ -151,23 +152,16 @@ cd $WORK_DIR/scripts
 
 ## Set up the files you need 
 
-The final OTU table is generated using R. To make things easier I recommend saving all the necessary files in one folder, otherwise you can hardcode the locations in the R file.
-
-`seqID_to_otu.tsv` and `sintax_OTUs.tsv` from `5_laca`
-
-`taxonomy.tsv` from the EMU database you used for the taxonomy assignments
-
-Make a folder of all of the EMU read assignments (*_read-assignment-distributions.tsv) and a folder of all the sintax outputs.
-
-Prepare a csv that lists each sample ID (library-barcode 1-1) and whether or not it is gnotobiotic (T or F), in the format shown below.
+The final OTU table is generated using `generate_consensus_table.R`, but to simplify things there is a shell command `generate_consensus.sh` that simplifies things. If the pipeline has been run to this point then all of the files should be in the proper location and the command will handle everything. You do need to prepare a csv that lists each sample ID (library-barcode 1-1) and whether or not it is gnotobiotic (T or F), in the format shown below. This file path should be saved in the config.txt file.
 
 ```
 barcode,gnotobiotic
 1-1,T
 1-2,T
+1-3,F
 ```
 
-if you're using a SynCom then prepare another file that lists the species name with taxid for each member (the names must be in the same format as the Emu database).
+If you're using a SynCom then prepare another file that lists the species name with taxid for each member (the names must be in the same format as the Emu database).
 
 ```
 species
@@ -177,5 +171,13 @@ Agrobacterium_tumefaciens_358
 
 ## Running the script
 
-Once you have the specified files you can run the `generate_consensus_otu_table.R` script in your preferred R interface. If you have a large dataset I recommend running it on a PC with a lot of RAM or on the HPC clusters using [Nova OnDemand](https://www.hpc.iastate.edu/guides/open-ondemand). You will have to go through and specify file locations and settings in the R script; these sections have comments telling you to edit them.
+Once you have the specified files you can run the `generate_consensus.sh` script. You can run it in an interactive session with the `-r` flag or you can generate and submit a slurm script with the `-s` flag.
 
+```
+generate_consensus.sh
+#Options:
+# -h, --help      Display this help message
+# -r, --run       Run function in current session
+# -s, --slurm     Generate and submit slurm script
+
+```
