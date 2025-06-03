@@ -209,14 +209,18 @@ EOF
 
 cat << 'EOF' >> Sintax_slurm.sh
 do
-    vsearch --sintax \
-        $READ_DIR/"${n}"-"${SLURM_ARRAY_TASK_ID}".fastq.gz \
-        --db $SINTAX_DB \
-        --tabbedout $WORK_DIR/"${n}"-"${SLURM_ARRAY_TASK_ID}"_sintax.tsv \
-        --sintax_cutoff 0.5 \
-        --strand both \
-        -notrunclabels \
-        --sintax_random
+    #get number of reads
+    READ_COUNT=$(seqkit stats $READ_DIR/"${n}"-"${SLURM_ARRAY_TASK_ID}".fastq.gz -T | csvtk -t cut -f 4 | csvtk del-header)
+    if [[ ! $READ_COUNT -eq 0 ]]; then
+        vsearch --sintax \
+            $READ_DIR/"${n}"-"${SLURM_ARRAY_TASK_ID}".fastq.gz \
+            --db $SINTAX_DB \
+            --tabbedout $WORK_DIR/"${n}"-"${SLURM_ARRAY_TASK_ID}"_sintax.tsv \
+            --sintax_cutoff 0.5 \
+            --strand both \
+            -notrunclabels \
+            --sintax_random
+    fi
 done
 EOF
 
