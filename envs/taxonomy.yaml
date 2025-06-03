@@ -6,3 +6,5 @@ channels:
 dependencies:
   - emu
   - vsearch
+  - seqkit
+  - csvtk
