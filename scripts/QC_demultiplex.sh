@@ -317,7 +317,7 @@ if [ $MULTI_LENGTH == "TRUE" ]; then
         sbatch --parsable --dependency=afterok:$JOBID2 NanoFilt_2_slurm.sh
         for m in $(seq 1 $NUM_OF_AMPLICON_SETS); do  sbatch --parsable --dependency=afterok:$JOBID2 NanoFilt_set${m}_slurm.sh done
     elif [ -z "$( ls -A $WORK_DIR/4_NanoFilt_2 )" ]; then
-        for m in $(seq 1 $NUM_OF_AMPLICON_SETS); do  sbatch --parsable --dependency=afterok:$JOBID2 NanoFilt_set${m}_slurm.sh done
+        for m in $(seq 1 $NUM_OF_AMPLICON_SETS); do  sbatch --parsable NanoFilt_set${m}_slurm.sh done
     else
         echo "Folders 2-4 already contain files"
     fi
