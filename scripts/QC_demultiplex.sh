@@ -269,14 +269,14 @@ cd $WORK_DIR/4_NanoFilt_2
 EOF
 
         if [ $CONDA == "conda" ]; then
-            echo 'eval "$(conda shell hook --shell bash)"' >> NanoFilt_2_slurm.sh
-            echo 'source activate $ENV_DIR/cutadapt-env' >> NanoFilt_2_slurm.sh
+            echo 'eval "$(conda shell hook --shell bash)"' >> NanoFilt_set"$m"_slurm.sh
+            echo 'source activate $ENV_DIR/cutadapt-env' >> NanoFilt_set"$m"_slurm.sh
         elif [ $CONDA == "mamba" ]; then
-            echo 'eval "$(mamba shell hook --shell bash)"' >> NanoFilt_2_slurm.sh
-            echo 'mamba activate $ENV_DIR/cutadapt-env' >> NanoFilt_2_slurm.sh
+            echo 'eval "$(mamba shell hook --shell bash)"' >> NanoFilt_set"$m"_slurm.sh
+            echo 'mamba activate $ENV_DIR/cutadapt-env' >> NanoFilt_set"$m"_slurm.sh
         elif [ $CONDA == "micromamba" ]; then
-            echo 'eval "$(micromamba shell hook --shell bash)"' >> NanoFilt_2_slurm.sh
-            echo 'micromamba activate $ENV_DIR/cutadapt-env' >> NanoFilt_2_slurm.sh
+            echo 'eval "$(micromamba shell hook --shell bash)"' >> NanoFilt_set"$m"_slurm.sh
+            echo 'micromamba activate $ENV_DIR/cutadapt-env' >> NanoFilt_set"$m"_slurm.sh
         fi
 
         cat << EOF >> NanoFilt_set"$m"_slurm.sh
