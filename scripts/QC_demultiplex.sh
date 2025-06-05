@@ -162,7 +162,7 @@ elif [ $CONDA == "micromamba" ]; then
 fi
 
 cat << 'EOF' >> Demux_slurm.sh
-cutadapt --revcomp --overlap $BARCODE_OVERLAP -j 16 -e $BARCODE_ERROR -a file:"${BARCODE_FILE}" -o "${SLURM_ARRAY_TASK_ID}"_demux-{name}.fastq.gz $READ_DIR/"${SLURM_ARRAY_TASK_ID}"_filt.fastq.gz
+cutadapt --revcomp --overlap $BARCODE_OVERLAP -j 16 -e $BARCODE_ERROR -a file:"${BARCODE_FILE}" -o "${SLURM_ARRAY_TASK_ID}"_{name}.fastq.gz $READ_DIR/"${SLURM_ARRAY_TASK_ID}"_filt.fastq.gz
 EOF
 
 
@@ -213,14 +213,13 @@ STRICT_MIN_LENGTH=$MIN_LENGTH
 STRICT_MAX_LENGTH=$MAX_LENGTH
 STRICT_MIN_Q=$MIN_Q
 
-for n in {1..$LIBRARY};
 EOF
 
     cat << 'EOF' >> NanoFilt_2_slurm.sh
-do
-    gunzip -c $READ_DIR/"$n"_*0"${SLURM_ARRAY_TASK_ID}".fastq.gz \
+for read in $READ_DIR/*0"${SLURM_ARRAY_TASK_ID}".fastq.gz; do
+    gunzip -c "$read" \
         | NanoFilt --length $STRICT_MIN_LENGTH --maxlength $STRICT_MAX_LENGTH -q $STRICT_MIN_Q \
-        | gzip > "${n}"-"${SLURM_ARRAY_TASK_ID}".fastq.gz
+        | gzip > $(basename "$read")
 done
 EOF
 
@@ -293,7 +292,7 @@ EOF
 do
     gunzip -c $READ_DIR/"$n"_*0"${SLURM_ARRAY_TASK_ID}".fastq.gz \
         | NanoFilt --length $STRICT_MIN_LENGTH --maxlength $STRICT_MAX_LENGTH -q $STRICT_MIN_Q \
-        | gzip > "${n}"-"${SLURM_ARRAY_TASK_ID}".fastq.gz
+        | gzip > $(basename "$READ_DIR/"$n"_*0"${SLURM_ARRAY_TASK_ID}".fastq.gz")
 done
 EOF
 
