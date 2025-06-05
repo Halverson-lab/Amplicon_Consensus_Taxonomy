@@ -147,23 +147,19 @@ elif [ $CONDA == "micromamba" ]; then
     echo 'micromamba activate $ENV_DIR/taxonomy-env' >> EMU_slurm.sh
 fi
 
-cat << EOF >> EMU_slurm.sh
-for n in {1..$LIBRARY};
-EOF
-
 cat << 'EOF' >> EMU_slurm.sh
-do
+for read in  $READ_DIR/*0"${SLURM_ARRAY_TASK_ID}".fastq.gz; do
     emu abundance --type lr:hq \
         --keep-counts \
         --keep-read-assignments \
         --output-unclassified \
         --threads ${THREADS} \
-        $READ_DIR/"${n}"-"${SLURM_ARRAY_TASK_ID}".fastq.gz \
+        $read \
         --db $EMU_DB \
-        --output-dir "${n}"-"${SLURM_ARRAY_TASK_ID}" \
-        --output-basename "${n}"-"${SLURM_ARRAY_TASK_ID}" 
+        --output-dir $(basename "$read" .fastq.gz) \
+        --output-basename $(basename "$read" .fastq.gz) 
         
-    cp "${n}"-"${SLURM_ARRAY_TASK_ID}"/"${n}"-"${SLURM_ARRAY_TASK_ID}"_read-assignment-distributions.tsv $WORK_DIR/read_assignments
+    cp "$(basename "$read" .fastq.gz)"/*_read-assignment-distributions.tsv $WORK_DIR/read_assignments
 done
 EOF
 
@@ -203,19 +199,16 @@ elif [ $CONDA == "micromamba" ]; then
     echo 'micromamba activate $ENV_DIR/taxonomy-env' >> Sintax_slurm.sh
 fi
 
-cat << EOF >> Sintax_slurm.sh
-for n in {1..$LIBRARY};
-EOF
 
 cat << 'EOF' >> Sintax_slurm.sh
-do
+for read in  $READ_DIR/*0"${SLURM_ARRAY_TASK_ID}".fastq.gz; do
     #get number of reads
-    READ_COUNT=$(seqkit stats $READ_DIR/"${n}"-"${SLURM_ARRAY_TASK_ID}".fastq.gz -T | csvtk -t cut -f 4 | csvtk del-header)
+    READ_COUNT=$(seqkit stats $read -T | csvtk -t cut -f 4 | csvtk del-header)
     if [[ ! $READ_COUNT -eq 0 ]]; then
         vsearch --sintax \
-            $READ_DIR/"${n}"-"${SLURM_ARRAY_TASK_ID}".fastq.gz \
+            $read \
             --db $SINTAX_DB \
-            --tabbedout $WORK_DIR/"${n}"-"${SLURM_ARRAY_TASK_ID}"_sintax.tsv \
+            --tabbedout $WORK_DIR/"$(basename "$read" .fastq.gz)"_sintax.tsv \
             --sintax_cutoff 0.5 \
             --strand both \
             -notrunclabels \
