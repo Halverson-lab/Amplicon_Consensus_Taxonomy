@@ -31,7 +31,7 @@ vim config.txt
 
 ## Set up the environment
 
-Run the environment setup script to build all of your environments. Most of these environments will be saved in the `envs` folder. You will need to input "Y" several times to confirm the installation. Users may receive a pip warning regarding the `LACA` installation, but this warning can be disregarded. This script can be re-run if needed, but it will not re-construct the environments unless you run it with the flag `-r | --reconstruct`. If you do reconstruct the environments, you will be prompted to confirm you want to over-write the existing environments.
+Run the environment setup script to build all of your environments. Most of these environments will be saved in the `envs` folder. You will need to input "Y" several times to confirm the installation. Users may receive a pip warning regarding the `LACA` installation, but this warning can be disregarded. This script can be re-run if needed, but it will not re-construct the environments unless you run it with the flag `-r | --reconstruct`. The reconstruct flag will delete the existing ACT environments and re-make them. You may be prompted by confirm the deletion or overwiting of environments.
 
 ```bash
 # Go to work directory
