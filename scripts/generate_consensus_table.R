@@ -26,8 +26,8 @@ if(syncom == TRUE){
 
 #Number of libraries
 lib_num <- Sys.getenv("LIBRARY")
-#Max number of unique barcodes 
-barcode_num <- Sys.getenv("BARCODES")
+#list of names of all barcodes
+barcode_list <- scan("barcode_names.txt", what="", sep="\n")
 
 # specify working directory
 setwd(path_to_work_dir)
@@ -267,16 +267,16 @@ combine_taxonomy <- function(sample_id, sintax_df, emu_df){
 sample_num <- 0
 
 for(plate_num in 1:lib_num){
-  for(barcode in 1:barcode_num){
+  for(barcode in barcode_list){
     # check if emu file exists for sample, looks for a file in the following format 1-1_read-assignment-distributions.tsv
-    if(file.exists(paste0(emu_path, plate_num, "-", barcode, "_read-assignment-distributions.tsv"))){
+    if(file.exists(paste0(emu_path, plate_num, "_", barcode, "_read-assignment-distributions.tsv"))){
       
       # read in emu and sintax files
-      emu_file <- read_tsv(paste0(emu_path, plate_num, "-", barcode, "_read-assignment-distributions.tsv"))
-      sintax_file <- read_tsv(paste0(sintax_path, plate_num, "-", barcode, "_sintax.tsv"), col_names = FALSE)
+      emu_file <- read_tsv(paste0(emu_path, plate_num, "_", barcode, "_read-assignment-distributions.tsv"))
+      sintax_file <- read_tsv(paste0(sintax_path, plate_num, "_", barcode, "_sintax.tsv"), col_names = FALSE)
       
       #save the sample id (1-1, etc.)
-      sample_id <- paste0(plate_num, "-", barcode)
+      sample_id <- paste0(plate_num, "_", barcode)
       
       # run the combine taxonomy function with the objects just generated and save the output
       output_df <- combine_taxonomy(sample_id, sintax_file, emu_file)
