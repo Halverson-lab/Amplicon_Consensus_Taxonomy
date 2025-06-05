@@ -4,8 +4,33 @@
 #user defined variables
 source config.txt
 
+reconstruct_flag=false
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -r | --reconstruct) 
+      reconstruct_flag=true
+      echo "Removing and reconstructing ACT environments" >&2
+      ;;
+    \?)
+      echo "Invalid option" >&2
+      exit 1
+      ;;
+  esac
+  shift
+done
+
 # Clone LACA
 cd $WORK_DIR
+if [ $reconstruct_flag == "true" ]; then
+    rm -r $ENV_DIR/nanoplot-env
+    rm -r $ENV_DIR/cutadapt-env
+    rm -r $ENV_DIR/taxonomy-env
+    rm -r $ENV_DIR/database-env
+    rm -r $ENV_DIR/consensus-env
+    rm -r $LACA_DIR
+fi
+
 if [ -z "$( ls -A $LACA_DIR )" ]; then
     cd "$(dirname "$LACA_DIR")"
     git clone https://github.com/yanhui09/laca.git
@@ -17,6 +42,12 @@ cd $ENV_DIR
 
 if [ $CONDA == "conda" ]; then
     eval "$(conda shell hook --shell bash)"
+    
+    if [ $reconstruct_flag == "true" ]; then
+        conda env remove -n ACT-env
+        conda env remove -n laca
+    fi
+    
     [[ -z "$(conda list --name ACT-env)" ]] && { conda env create -n ACT-env -f ACT.yaml; }
     [[ ! -e $ENV_DIR/nanoplot-env ]] && { conda env create --prefix ./nanoplot-env -f nanoplot.yaml; }
     [[ ! -e $ENV_DIR/cutadapt-env ]] && { conda env create --prefix ./cutadapt-env -f cutadapt.yaml; }
@@ -41,6 +72,12 @@ if [ $CONDA == "conda" ]; then
     
 elif [ $CONDA == "mamba" ]; then
     eval "$(mamba shell hook --shell bash)"
+    
+    if [ $reconstruct_flag == "true" ]; then
+        mamba env remove -n ACT-env
+        mamba env remove -n laca
+    fi
+    
     [[ -z "$(conda list --name ACT-env)" ]] && { mamba env create -n ACT-env -f ACT.yaml; }
     [[ ! -e $ENV_DIR/nanoplot-env ]] && { mamba env create --prefix ./nanoplot-env -f nanoplot.yaml; }
     [[ ! -e $ENV_DIR/cutadapt-env ]] && { mamba env create --prefix ./cutadapt-env -f cutadapt.yaml; }
@@ -65,6 +102,12 @@ elif [ $CONDA == "mamba" ]; then
     
 elif [ $CONDA == "micromamba" ]; then
     eval "$(micromamba shell hook --shell bash)"
+
+    if [ $reconstruct_flag == "true" ]; then
+        micromamba env remove -n ACT-env
+        micromamba env remove -n laca
+    fi
+    
     [[ -z "$(conda list --name ACT-env)" ]] && { micromamba env create -n ACT-env -f ACT.yaml; }
     [[ ! -e $ENV_DIR/nanoplot-env ]] && { micromamba env create --prefix ./nanoplot-env -f nanoplot.yaml; }
     [[ ! -e $ENV_DIR/cutadapt-env ]] && { micromamba env create --prefix ./cutadapt-env -f cutadapt.yaml; }
