@@ -2,9 +2,9 @@
 
 IMPORTANT! This pipeline should be run on one gene at a time. Reads should be all 16S or all ITS (or whatever gene you're interested), not a mix of both. You have to run the pipeline independently for each set.
 
-Make sure you have some version of conda installed. The pipeline can use conda, mamba, or micromamba.
+Make sure you have some version of conda installed. The pipeline can be run with conda, mamba, or micromamba.
 
-All of these scripts are written to produce and run slurm batch scripts. All scripts will be generated in the `slurm_scripts` folder. Most of them will submit the scripts for you, unless otherwise specified.
+The majority of these scripts are written to produce and run slurm batch scripts. All scripts will be generated in the `slurm_scripts` folder. Most of them will submit the scripts for you, unless otherwise specified. Some commands also have an option to allow you to run the command in your current session.
 
 ## Files needed
 
@@ -18,7 +18,7 @@ From here forward everything should be done in this folder. Move your raw read f
 
 ## Config file
 
-The `config.txt` file has all of the settings for running the pipeline. It comes pre-filled out with example info, you need to delete that and fill it out with your info. Once you're done save the file into the scripts folder.
+The `config.txt` file has all of the settings for running the pipeline. It comes pre-filled out with example info that you need to replace with your info. Ensure that the file you want to use is named `config.txt`, as that is what all scripts will reference for settings.
 
 ```bash
 # make a copy of the config file
@@ -31,7 +31,7 @@ vim config.txt
 
 ## Set up the environment
 
-Run the environment setup script once. This will build all of your environments. Most of these environments will be saved in the `envs` folder. You will need to input "Y" several times to confirm the installation. Users may receive a pip warning regarding the laca installation, but this warning can be disregarded. This script can be re-run if needed. 
+Run the environment setup script to build all of your environments. Most of these environments will be saved in the `envs` folder. You will need to input "Y" several times to confirm the installation. Users may receive a pip warning regarding the `LACA` installation, but this warning can be disregarded. This script can be re-run if needed, but it will not re-construct the environments unless you run it with the flag `-r | --reconstruct`. If you do reconstruct the environments, you will be prompted to confirm you want to over-write the existing environments.
 
 ```bash
 # Go to work directory
@@ -40,6 +40,9 @@ chmod +x ./environment_setup.sh
 ./environment_setup.sh
 
 conda activate ACT-env
+
+#to reconstruct the environments
+./environment_setup.sh -r
 ```
 
 ## Database builder
@@ -75,11 +78,11 @@ nanoplot_helper.sh
 
 ## Quality control and demultiplexing
 
-Ensure all of the `QC and Demux Parameters` are filled out in the config file. The `BARCODE_OVERLAP` tells `cutadapt` how much of your barcode must be present to be considered valid and should be equal to your barcode length or slightly less. For barcodes greater than 10 bases long the overlap should be length minus 1 (13 bp barcode -> BARCODE_OVERLAP=12). For barcodes shoert than 10 bp it should be the length of the barcode.
+Ensure all of the `QC and Demux Parameters` are filled out in the config file. The `BARCODE_OVERLAP` tells `cutadapt` how much of your barcode must be present to be considered valid and should be equal to your barcode length or slightly less. For barcodes greater than 10 bases long the overlap should be length minus 1 (13 bp barcode -> BARCODE_OVERLAP=12). For barcodes shorter than 10 bp it should be the length of the barcode.
 
 ### A note on barcodes
 
-This was written to take in a fasta file of all paired numbered barcodes and then choose which you use. This allows the lab to make a single barcode file that anyone can use as a whole or as a subset. If you prefer, you can make a file that only contains the barcodes you use and number them from 1 to X. 
+This was written to take in a fasta file of all paired numbered barcodes and then choose which you use. This allows the lab to make a single barcode file that anyone can use as a whole or as a subset. If you prefer, you can make a file that only contains the barcodes you use and number them from 1 to X, make sure there is at least on leading zero if you habe >10 barcodes and add an additional leading zero for each 10 fold change (>100 barcodes means starting with 001). 
 
 ```
 >barcode001
@@ -167,13 +170,13 @@ taxonomy_assignment.sh -a
 
 ## Set up the files you need 
 
-The final OTU table is generated using `generate_consensus_table.R`, but to simplify things there is a shell command `generate_consensus.sh` that simplifies things. If the pipeline has been run to this point then all of the files should be in the proper location and the command will handle everything. You do need to prepare a csv that lists each sample ID (library-barcode 1-1) and whether or not it is gnotobiotic (T or F), in the format shown below. This file path should be saved in the config.txt file.
+The final OTU table is generated using `generate_consensus_table.R`, but to simplify things there is a shell command `generate_consensus.sh` that simplifies things. If the pipeline has been run to this point then all of the files should be in the proper location and the command will handle everything. You do need to prepare a csv that lists each sample ID (library_barcode 1_HL001) and whether or not it is gnotobiotic (T or F), in the format shown below. This file path should be saved in the config.txt file.
 
 ```
 barcode,gnotobiotic
-1-1,T
-1-2,T
-1-3,F
+1_HL001,T
+1_HL002,T
+1_HL003,F
 ```
 
 If you're using a SynCom then prepare another file that lists the species name with taxid for each member (the names must be in the same format as the Emu database).
