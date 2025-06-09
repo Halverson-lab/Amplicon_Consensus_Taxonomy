@@ -127,8 +127,9 @@ EMU_THREADS=32
 
 ################################### Generate Consensus Parameters ###################################
 
-# is sample gnotobiotic? 2 column csv with every barcode and TRUE/FALSE for gnotobiotic
-GNOTO=/path/to/dir/Amplicon_Consensus_Taxonomy/sample_info/gnotobiotic_sample_info.csv
+# Are any samples gnotobiotic? If true then prepare a 2 column csv with every barcode and TRUE/FALSE for gnotobiotic
+GNOTO=TRUE
+GNOTO_LIST=/path/to/dir/Amplicon_Consensus_Taxonomy/sample_info/gnotobiotic_sample_info.csv
 
 # Does the experiment use SynComs? Answer TRUE or FALSE
 SYNCOM=TRUE
