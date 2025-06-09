@@ -138,13 +138,13 @@ EOF
 
 if [ $CONDA == "conda" ]; then
     echo 'eval "$(conda shell hook --shell bash)"' >> EMU_slurm.sh
-    echo 'source activate $ENV_DIR/taxonomy-env' >> EMU_slurm.sh
+    echo "source activate $ENV_DIR/taxonomy-env" >> EMU_slurm.sh
 elif [ $CONDA == "mamba" ]; then
     echo 'eval "$(mamba shell hook --shell bash)"' >> EMU_slurm.sh
-    echo 'mamba activate $ENV_DIR/taxonomy-env' >> EMU_slurm.sh
+    echo "mamba activate $ENV_DIR/taxonomy-env" >> EMU_slurm.sh
 elif [ $CONDA == "micromamba" ]; then
     echo 'eval "$(micromamba shell hook --shell bash)"' >> EMU_slurm.sh
-    echo 'micromamba activate $ENV_DIR/taxonomy-env' >> EMU_slurm.sh
+    echo "micromamba activate $ENV_DIR/taxonomy-env" >> EMU_slurm.sh
 fi
 
 cat << 'EOF' >> EMU_slurm.sh
@@ -190,13 +190,13 @@ EOF
 
 if [ $CONDA == "conda" ]; then
     echo 'eval "$(conda shell hook --shell bash)"' >> Sintax_slurm.sh
-    echo 'source activate $ENV_DIR/taxonomy-env' >> Sintax_slurm.sh
+    echo "source activate $ENV_DIR/taxonomy-env" >> Sintax_slurm.sh
 elif [ $CONDA == "mamba" ]; then
     echo 'eval "$(mamba shell hook --shell bash)"' >> Sintax_slurm.sh
-    echo 'mamba activate $ENV_DIR/taxonomy-env' >> Sintax_slurm.sh
+    echo "mamba activate $ENV_DIR/taxonomy-env" >> Sintax_slurm.sh
 elif [ $CONDA == "micromamba" ]; then
     echo 'eval "$(micromamba shell hook --shell bash)"' >> Sintax_slurm.sh
-    echo 'micromamba activate $ENV_DIR/taxonomy-env' >> Sintax_slurm.sh
+    echo "micromamba activate $ENV_DIR/taxonomy-env" >> Sintax_slurm.sh
 fi
 
 
@@ -243,13 +243,13 @@ EOF
 
 if [ $CONDA == "conda" ]; then
     echo 'eval "$(conda shell hook --shell bash)"' >> Sintax_OTU_slurm.sh
-    echo 'source activate $ENV_DIR/taxonomy-env' >> Sintax_OTU_slurm.sh
+    echo "source activate $ENV_DIR/taxonomy-env" >> Sintax_OTU_slurm.sh
 elif [ $CONDA == "mamba" ]; then
     echo 'eval "$(mamba shell hook --shell bash)"' >> Sintax_OTU_slurm.sh
-    echo 'mamba activate $ENV_DIR/taxonomy-env' >> Sintax_OTU_slurm.sh
+    echo "mamba activate $ENV_DIR/taxonomy-env" >> Sintax_OTU_slurm.sh
 elif [ $CONDA == "micromamba" ]; then
     echo 'eval "$(micromamba shell hook --shell bash)"' >> Sintax_OTU_slurm.sh
-    echo 'micromamba activate $ENV_DIR/taxonomy-env' >> Sintax_OTU_slurm.sh
+    echo "micromamba activate $ENV_DIR/taxonomy-env" >> Sintax_OTU_slurm.sh
 fi
 
 
