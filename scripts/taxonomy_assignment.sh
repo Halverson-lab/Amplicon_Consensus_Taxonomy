@@ -149,17 +149,19 @@ fi
 
 cat << 'EOF' >> EMU_slurm.sh
 for read in  $READ_DIR/*0"${SLURM_ARRAY_TASK_ID}".fastq.gz; do
-    emu abundance --type lr:hq \
-        --keep-counts \
-        --keep-read-assignments \
-        --output-unclassified \
-        --threads ${THREADS} \
-        $read \
-        --db $EMU_DB \
-        --output-dir $(basename "$read" .fastq.gz) \
-        --output-basename $(basename "$read" .fastq.gz) 
-        
-    cp "$(basename "$read" .fastq.gz)"/*_read-assignment-distributions.tsv $WORK_DIR/read_assignments
+    if [[ -e $read ]] ; then
+        emu abundance --type lr:hq \
+            --keep-counts \
+            --keep-read-assignments \
+            --output-unclassified \
+            --threads ${THREADS} \
+            $read \
+            --db $EMU_DB \
+            --output-dir $(basename "$read" .fastq.gz) \
+            --output-basename $(basename "$read" .fastq.gz) 
+            
+        cp "$(basename "$read" .fastq.gz)"/*_read-assignment-distributions.tsv $WORK_DIR/read_assignments
+    fi
 done
 EOF
 
