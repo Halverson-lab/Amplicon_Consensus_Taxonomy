@@ -78,7 +78,7 @@ elif [ $CONDA == "mamba" ]; then
         mamba env remove -n laca
     fi
     
-    [[ -z "$(conda list --name ACT-env)" ]] && { mamba env create -n ACT-env -f ACT.yaml; }
+    [[ -z "$(mamba list --name ACT-env)" ]] && { mamba env create -n ACT-env -f ACT.yaml; }
     [[ ! -e $ENV_DIR/nanoplot-env ]] && { mamba env create --prefix ./nanoplot-env -f nanoplot.yaml; }
     [[ ! -e $ENV_DIR/cutadapt-env ]] && { mamba env create --prefix ./cutadapt-env -f cutadapt.yaml; }
     [[ ! -e $ENV_DIR/taxonomy-env ]] && { mamba env create --prefix ./taxonomy-env -f taxonomy.yaml; }
@@ -108,7 +108,7 @@ elif [ $CONDA == "micromamba" ]; then
         micromamba env remove -n laca
     fi
     
-    [[ -z "$(conda list --name ACT-env)" ]] && { micromamba env create -n ACT-env -f ACT.yaml; }
+    [[ -z "$(micromamba list --name ACT-env)" ]] && { micromamba env create -n ACT-env -f ACT.yaml; }
     [[ ! -e $ENV_DIR/nanoplot-env ]] && { micromamba env create --prefix ./nanoplot-env -f nanoplot.yaml; }
     [[ ! -e $ENV_DIR/cutadapt-env ]] && { micromamba env create --prefix ./cutadapt-env -f cutadapt.yaml; }
     [[ ! -e $ENV_DIR/taxonomy-env ]] && { micromamba env create --prefix ./taxonomy-env -f taxonomy.yaml; }
