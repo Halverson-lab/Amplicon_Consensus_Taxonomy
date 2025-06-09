@@ -75,7 +75,7 @@ else
 fi
 
 #generate the list of barcode names for R
-seqkit seq -n $BARCODE_FILE > $WORK_DIR/barcode_list.txt
+seqkit seq -n $BARCODE_FILE > $WORK_DIR/barcode_names.txt
 
 #run the R script
 if [[ $run_flag == "true" ]]; then
