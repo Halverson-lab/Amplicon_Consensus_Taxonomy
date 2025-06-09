@@ -60,6 +60,39 @@ database_builder.sh
 #  -n, --ncbi      Add sequences to database using list of NCBI accesions
 ```
 
+### Default database
+
+The default ACT database is built from a combination of NCBI 16S rRNA RefSeq database and the [Ribosomal RNA Database](https://rrndb.umms.med.umich.edu/). This database can be rebuilt using the `-d` or `--default` flags to get the most updated versions. The rrnDB does not have a static link for downloading the latest copy, so users must provide a URL in the config file to the version they want. This URL can be found by going to the [rrnDB download page](https://rrndb.umms.med.umich.edu/downloads/) and copying the link to the latest `rrnDB-*_16S_rRNA.fasta.zip` file.
+
+### Custom database
+
+Users can build a completely custom database using the `-b` or `--build` flags and providing two files 1) `sequences.fasta` containing all the 16S sequences in fasta format and 2) `seq2tax.txt` containing a two-column, headerless, tab-delimited list of sequence IDs and their corresponding taxids. The sequence IDs need to match in both files and the taxids should correspond to NCBI taxids. Sequences that cannot be assigned NCBI taxids should be added separately using the `-a | --add` flags after building the initial database.
+
+### Modifying the existing database
+
+Adding to an existing database can be done in two ways, 1) with a list of NCBI accessions or 2) with user provided files. To add using NCBI accesions, provide a text file with a list of RefSeq assembly IDs or nuceotide IDs to ACC_LIST in the config file and run `database_builder.sh -n`. This will automatically pull the listed genomes, extract all annotated 16S rRNA sequences as well as the assigned taxonomy and add everthing to the existing database. Users will be notified of any accessions that can't be found; this command uses NCBI's E-utilities, which can be finicky about which types of IDs it accepts, so if an accession is not found then try a different ID. For example, the genome for *Acidovorax facilis* R-28 can be added with the RefSeq chromosome ID	NZ_CP183985.1 or with the NCBI RefSeq assembly ID GCF_049913225.1, but not with the submitted GenBank assembly ID GCA_049913225.1. It's also important to remember that the user does not have control over the taxonomy of assemblies added in this manner, as they will inherit the taxonomic assignment from NCBI, and that all identified 16S rRNA genes will be added. If users need more control over the sequences/taxonomies then they should add sequences using the `--add` flag, described below.
+
+Modifying the database with user provided files and the `--add` flag will give the most control over the sequences and taxonomies added, as users will provide all of the necessary data. Preparing this data can be time consuming, hence the option of adding based on accession IDs. The `--add` option requires the following 3 files to be listed in the config file. 
+
+| Config setting | file description |
+| :------------- | :--------------- |
+| USER_SEQ       | a fasta file of sequences to be added |
+| USER_SEQ2TAX   | 2 column tab delimited file of sequence headers and taxids |
+| USER_TAX       | tab delimited taxonomy file for each new taxid |
+
+Taxonomy information is only required if adding taxids that do not exist in NCBI (such as synthetic sequences). The taxonomy file should be contain the columns taxid, domaim, phylum, class, order, family, genus, species, t_domain, t_phylum, t_class, t_order, t_family, t_genus, and t_species. The columns starting with "t_" should contain the taxid of the corresponding phylogeny. Ensure any added taxids do not already exist. Below is an example for adding a new species and a synthetic sequence; the new species is filled in with the existing taxids for every level except the last and the sythetic sequence is given new taxids. Taxids can be found on the [NCBI taxonomy browser](https://www.ncbi.nlm.nih.gov/datasets/taxonomy/tree/).
+
+| tax_id | domain | phylum | class | order | family | genus | species | t_domain | t_phylum | t_class | t_order | t_family | t_genus | t_species |
+| ------ | ------ | ------ | ----- | ----- | ------ | ----- | ------- | -------- | -------- | ------- | ------- | -------- | ------- | --------- |
+| 8000001 | Bacteria | Bacteroidota | Flavobacteriia | Flavobacteriales | Weeksellaceae | Chryseobacterium | Chryseobacterium S02 | 2 | 976 | 117743 | 200644 | 2762318 | 59732 | 8000001 |
+| 9000005 | Bacteria | Synthetic | Synthetic | Synthetic | Synthetic | Ec5001 | Ec5001 | 2 | 9000000 | 9000001 | 9000002 | 9000003 | 9000004 | 9000005
+
+### Alternative databases
+
+Support for UNITE to be added for fungus.
+
+Pre-built databases for Silva, GreenGenes2, GTDB can be found here (add link), but are not recommended for these reasons (cite paper). Scripts for how they were generated can be found in X folder.
+
 ## Examining reads and setting quality control parameters.
 
 The parameters you set for filtering should be based on what your read set looks like. Inspect your reads with your preferred tool. I've included a optional script for running NanoPlot, since that is my preferred tool. 
