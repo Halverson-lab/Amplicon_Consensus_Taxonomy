@@ -12,7 +12,9 @@ path_to_work_dir <- Sys.getenv("WORK_DIR")
 
 path_to_data_dir <- Sys.getenv("DATABASE_DIR")
 
-path_to_gnoto <- Sys.getenv("GNOTO")
+is_gnoto <- Sys.getenv("GNOTO")
+
+path_to_gnoto <- Sys.getenv("GNOTO_LIST")
 
 syncom <- Sys.getenv("SYNCOM")
 
@@ -46,12 +48,15 @@ otu_taxonomy_df <- read_tsv(paste0(path_to_work_dir, "/5_laca/sintax_OTUs.tsv"),
 raw_taxon_table <- read_tsv(paste0(path_to_data_dir,"/taxonomy.tsv"))
 
 
-#### Edit here - Load Sample info ####
-
 # is sample gnotobiotic? 2 column csv with every barcode and TRUE/FALSE for gnotobiotic
-gnotobiotic <- read_csv(path_to_gnoto)
-gnotobiotic <- column_to_rownames(gnotobiotic, var = "barcode")
-
+if(is_gnoto == TRUE){
+  gnotobiotic <- read_csv(path_to_gnoto)
+  gnotobiotic <- column_to_rownames(gnotobiotic, var = "barcode")
+} else {
+  gnotobiotic <- as.data.frame(barcode_list)
+  gnotobiotic$gnotobiotic <- F
+  gnotobiotic <- column_to_rownames(gnotobiotic, var = "barcode_list")
+}
 
 
 #### Format dataframes, including the taxonomy dataframes. Do not edit, unless absolutely necessary ####
