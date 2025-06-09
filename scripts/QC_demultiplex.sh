@@ -218,9 +218,11 @@ EOF
 
     cat << 'EOF' >> NanoFilt_2_slurm.sh
 for read in $READ_DIR/*0"${SLURM_ARRAY_TASK_ID}".fastq.gz; do
-    gunzip -c "$read" \
-        | NanoFilt --length $STRICT_MIN_LENGTH --maxlength $STRICT_MAX_LENGTH -q $STRICT_MIN_Q \
-        | gzip > $(basename "$read")
+    if [[ -e $read ]] ; then
+        gunzip -c "$read" \
+            | NanoFilt --length $STRICT_MIN_LENGTH --maxlength $STRICT_MAX_LENGTH -q $STRICT_MIN_Q \
+            | gzip > $(basename "$read")
+    fi
 done
 EOF
 
@@ -291,9 +293,11 @@ EOF
 
         cat << 'EOF' >> NanoFilt_set"$m"_slurm.sh
 do
-    gunzip -c $READ_DIR/"$n"_*0"${SLURM_ARRAY_TASK_ID}".fastq.gz \
-        | NanoFilt --length $STRICT_MIN_LENGTH --maxlength $STRICT_MAX_LENGTH -q $STRICT_MIN_Q \
-        | gzip > $(basename "$READ_DIR/"$n"_*0"${SLURM_ARRAY_TASK_ID}".fastq.gz")
+    if [[ -e $READ_DIR/"$n"_*0"${SLURM_ARRAY_TASK_ID}".fastq.gz ]] ; then
+        gunzip -c $READ_DIR/"$n"_*0"${SLURM_ARRAY_TASK_ID}".fastq.gz \
+            | NanoFilt --length $STRICT_MIN_LENGTH --maxlength $STRICT_MAX_LENGTH -q $STRICT_MIN_Q \
+            | gzip > $(basename "$READ_DIR/"$n"_*0"${SLURM_ARRAY_TASK_ID}".fastq.gz")
+    fi
 done
 EOF
 
