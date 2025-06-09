@@ -99,7 +99,6 @@ if [[ $slurm_flag == "true" ]]; then
 #SBATCH --mail-user=$EMAIL  # email address
 #SBATCH --mail-type=END
 #SBATCH --mail-type=FAIL
-#SBATCH --array=1-$LIBRARY
 
 WORK_DIR=$WORK_DIR
 
