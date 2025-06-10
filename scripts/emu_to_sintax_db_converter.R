@@ -37,7 +37,7 @@ old2new_header <- fasta_lineage %>%
   mutate(emu_id = paste(tax_id, db, emu_num, sep = ":"),
          sintax_id = paste(tax_id, db, emu_num, sep = "_")) %>%
   unite("sintax_header", c(sintax_id, lineage), sep = ";tax=") %>%
-  mutate(sintax_header = paste0(sintax_header, ";") %>%
+  mutate(sintax_header = paste0(sintax_header, ";")) %>%
   select(c(emu_id, sintax_header))
 
 write_tsv(old2new_header, "emu2sintax-header.tsv", col_name = FALSE, escape = "none")
