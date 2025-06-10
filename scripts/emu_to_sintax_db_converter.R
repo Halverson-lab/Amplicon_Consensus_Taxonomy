@@ -23,7 +23,7 @@ cat_taxon <- taxonomy %>%
     genus = if_else(is.na(genus), NA, paste0("g:", genus, "_", t_genus)),
     species = if_else(is.na(species), NA, paste0("s:", species, "_", t_species))
     ) %>%
-  unite("lineage", domain:species, sep = ",") %>%
+  unite("lineage", domain:species, sep = ",", na.rm = TRUE) %>%
   mutate(lineage = str_replace_all(lineage, " ", "_")) %>%
   distinct() %>%
   column_to_rownames(var = "tax_id")
@@ -36,8 +36,8 @@ fasta_lineage <- emu_headers %>%
 old2new_header <- fasta_lineage %>%
   mutate(emu_id = paste(tax_id, db, emu_num, sep = ":"),
          sintax_id = paste(tax_id, db, emu_num, sep = "_")) %>%
-  unite("emu_header", c(emu_id, header), sep = " ") %>%
   unite("sintax_header", c(sintax_id, lineage), sep = ";tax=") %>%
-  select(-c(tax_id, db, emu_num))
+  mutate(sintax_header = paste0(sintax_header, ";") %>%
+  select(c(emu_id, sintax_header))
 
 write_tsv(old2new_header, "emu2sintax-header.tsv", col_name = FALSE, escape = "none")
