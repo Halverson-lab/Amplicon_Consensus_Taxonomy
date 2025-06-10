@@ -195,6 +195,9 @@ if [[ $build_flag == "true" ]]; then
     | csvtk cut -t -f -2 \
     | csvtk add-header -t -n taxid,domain,phylum,class,order,family,genus,species,t_domain,t_phylum,t_class,t_order,t_family,t_genus,t_species -o taxonomy.tsv
 
+    #remove special characters from the taxonomy
+    cat taxonomy.tsv | tr -d ';#&%' | tr -d "\'" > safe_taxonomy.tsv && mv ./safe_taxonomy.tsv ./taxonomy.tsv
+
     # Build EMU formatted database
     emu build-database ACT_DB --sequences sequences.fasta --seq2tax seq2taxid.txt --taxonomy-list taxonomy.tsv
     mv ACT_DB/* ./ 
@@ -209,7 +212,7 @@ if [[ $build_flag == "true" ]]; then
     
     # run the r script for converting EMU headers to Sintax headers
     emu_to_sintax_db_converter.R
-    seqkit replace -p "(.+)" -r '{kv}' -k emu2sintax-header.tsv species_taxid.fasta > sintax_db.fasta
+    seqkit replace -p "\s.+" species_taxid.fasta | seqkit replace -p "(.+)" -r '{kv}' -k emu2sintax-header.tsv > sintax_db.fasta
 
 fi
 
@@ -253,6 +256,9 @@ if [[ $ncbi_flag == "true" ]]; then
         | csvtk cut -t -f -2 \
         | csvtk add-header -t -n taxid,domain,phylum,class,order,family,genus,species,t_domain,t_phylum,t_class,t_order,t_family,t_genus,t_species -o taxonomy.tsv
 
+    #remove special characters from the taxonomy
+    cat taxonomy.tsv | tr -d ';#&%' | tr -d "\'" > safe_taxonomy.tsv && mv ./safe_taxonomy.tsv ./taxonomy.tsv
+
     #rebuild the emu formatted database with the added sequences
     emu build-database ACT_DB --sequences sequences.fasta --seq2tax seq2taxid.txt --taxonomy-list taxonomy.tsv
     mv ACT_DB/* ./
@@ -263,7 +269,7 @@ if [[ $ncbi_flag == "true" ]]; then
 
     # run the r script for converting EMU headers to Sintax headers
     emu_to_sintax_db_converter.R
-    seqkit replace -p "(.+)" -r '{kv}' -k emu2sintax-header.tsv species_taxid.fasta > sintax_db.fasta
+    seqkit replace -p "\s.+" species_taxid.fasta | seqkit replace -p "(.+)" -r '{kv}' -k emu2sintax-header.tsv > sintax_db.fasta
 fi
 
 if [[ $add_flag == "true" ]]; then
@@ -273,6 +279,9 @@ if [[ $add_flag == "true" ]]; then
     cat $USER_SEQ2TAX >> seq2taxid.txt
     if [[ -z "$USER_TAX" ]]; then
         cat $USER_TAX >> taxonomy.tsv
+        #remove special characters from the taxonomy
+        cat taxonomy.tsv | tr -d ';#&%' | tr -d "\'" > safe_taxonomy.tsv && mv ./safe_taxonomy.tsv ./taxonomy.tsv
+
     fi 
 
     #rebuild the emu formatted database with the added sequences
@@ -285,6 +294,6 @@ if [[ $add_flag == "true" ]]; then
 
     # run the r script for converting EMU headers to Sintax headers
     emu_to_sintax_db_converter.R
-    seqkit replace -p "(.+)" -r '{kv}' -k emu2sintax-header.tsv species_taxid.fasta > sintax_db.fasta
+    seqkit replace -p "\s.+" species_taxid.fasta | seqkit replace -p "(.+)" -r '{kv}' -k emu2sintax-header.tsv > sintax_db.fasta
 fi
 
