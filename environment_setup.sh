@@ -31,11 +31,6 @@ if [ $reconstruct_flag == "true" ]; then
     rm -r $LACA_DIR
 fi
 
-if [ -z "$( ls -A $LACA_DIR )" ]; then
-    cd "$(dirname "$LACA_DIR")"
-    git clone https://github.com/yanhui09/laca.git
-fi
-
 
 # Set up environments
 cd $ENV_DIR
@@ -57,13 +52,26 @@ if [ $CONDA == "conda" ]; then
     
     #prep laca env
     if [ -z "$( ls -A $LACA_DIR )" ]; then
+        cd "$(dirname "$LACA_DIR")"
+        git clone https://github.com/yanhui09/laca.git
+        
         cd $LACA_DIR
         conda env create -n laca -f env.yaml 
         conda activate laca
         pip install --editable .
         conda deactivate
+
+        # Replace the clust.smk and quant.smk files
+        cp $WORK_DIR/laca_changes/clust.smk $LACA_DIR/laca/workflow/rules/
+        cp $WORK_DIR/laca_changes/quant.smk $LACA_DIR/laca/workflow/rules/
+        
+        # In the /laca/laca/workflow/envs directory, modify the yacrd.yaml file to specify minimap2=2.18
+        # In the /laca/laca/workflow/envs directory, modify the medaka.yaml file to change the order of the channels to make conda-forge first, and specify samtools=1.11
+        cp $WORK_DIR/laca_changes/medaka.yaml $LACA_DIR/laca/workflow/envs/
+        cp $WORK_DIR/laca_changes/yacrd.yaml $LACA_DIR/laca/workflow/envs/
+                
     fi
-    
+
     #put the ACT scripts in the path
     conda activate ACT-env
     cd $WORK_DIR/scripts
@@ -87,11 +95,24 @@ elif [ $CONDA == "mamba" ]; then
     
     #prep laca env
     if [ -z "$( ls -A $LACA_DIR )" ]; then
+        cd "$(dirname "$LACA_DIR")"
+        git clone https://github.com/yanhui09/laca.git
+        
         cd $LACA_DIR
         mamba env create -n laca -f env.yaml 
         mamba activate laca
         pip install --editable .
         mamba deactivate
+        
+        # Replace the clust.smk and quant.smk files
+        cp $WORK_DIR/laca_changes/clust.smk $LACA_DIR/laca/workflow/rules/
+        cp $WORK_DIR/laca_changes/quant.smk $LACA_DIR/laca/workflow/rules/
+        
+        # In the /laca/laca/workflow/envs directory, modify the yacrd.yaml file to specify minimap2=2.18
+        # In the /laca/laca/workflow/envs directory, modify the medaka.yaml file to change the order of the channels to make conda-forge first, and specify samtools=1.11
+        cp $WORK_DIR/laca_changes/medaka.yaml $LACA_DIR/laca/workflow/envs/
+        cp $WORK_DIR/laca_changes/yacrd.yaml $LACA_DIR/laca/workflow/envs/
+                
     fi
     
     #put the ACT scripts in the path
@@ -117,11 +138,23 @@ elif [ $CONDA == "micromamba" ]; then
     
     #prep laca env
     if [ -z "$( ls -A $LACA_DIR )" ]; then
+        cd "$(dirname "$LACA_DIR")"
+        git clone https://github.com/yanhui09/laca.git
+        
         cd $LACA_DIR
         micromamba env create -n laca -f env.yaml 
         micromamba activate laca
         pip install --editable .
         micromamba deactivate
+
+        # Replace the clust.smk and quant.smk files
+        cp $WORK_DIR/laca_changes/clust.smk $LACA_DIR/laca/workflow/rules/
+        cp $WORK_DIR/laca_changes/quant.smk $LACA_DIR/laca/workflow/rules/
+        
+        # In the /laca/laca/workflow/envs directory, modify the yacrd.yaml file to specify minimap2=2.18
+        # In the /laca/laca/workflow/envs directory, modify the medaka.yaml file to change the order of the channels to make conda-forge first, and specify samtools=1.11
+        cp $WORK_DIR/laca_changes/medaka.yaml $LACA_DIR/laca/workflow/envs/
+        cp $WORK_DIR/laca_changes/yacrd.yaml $LACA_DIR/laca/workflow/envs/
     fi
     
     #put the ACT scripts in the path
