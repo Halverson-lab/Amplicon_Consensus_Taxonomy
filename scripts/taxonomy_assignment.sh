@@ -160,7 +160,7 @@ for read in  $READ_DIR/*0"${SLURM_ARRAY_TASK_ID}".fastq.gz; do
             --output-dir $(basename "$read" .fastq.gz) \
             --output-basename $(basename "$read" .fastq.gz) 
             
-        cp "$(basename "$read" .fastq.gz)"/*_read-assignment-distributions.tsv $WORK_DIR/read_assignments
+        cp "$(basename "$read" .fastq.gz)"/*_read-assignment-distributions.tsv $WORK_DIR/read_assignments/
     fi
 done
 EOF
