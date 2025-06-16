@@ -9,8 +9,10 @@ options("scipen"=999) # very important, keeps R from converting taxids to scient
 readRenviron("config.txt")
 
 path_to_work_dir <- Sys.getenv("WORK_DIR")
-
 path_to_data_dir <- Sys.getenv("DATABASE_DIR")
+path_to_laca_dir <- Sys.getenv("LACA_OUT")
+path_to_emu_dir <- Sys.getenv("EMU_OUT")
+path_to_sintax_dir <- Sys.getenv("SINTAX_OUT")
 
 is_gnoto <- Sys.getenv("GNOTO")
 
@@ -29,20 +31,20 @@ if(syncom == TRUE){
 #Number of libraries
 lib_num <- Sys.getenv("LIBRARY")
 #list of names of all barcodes
-barcode_list <- scan("barcode_names.txt", what="", sep="\n")
+barcode_list <- scan(paste0(path_to_work_dir,"/barcode_names.txt"), what="", sep="\n")
 
 # specify working directory
 setwd(path_to_work_dir)
 
 # file path to the emu and sintax outputs, location is relative to workdir
-emu_path <- paste0(path_to_work_dir, "/6_emu/read_assignments/")
-sintax_path <- paste0(path_to_work_dir, "/7_sintax/")
+emu_path <- paste0(path_to_emu_dir, "/read_assignments/")
+sintax_path <- paste0(path_to_sintax_dir)
 
 # Read in the seqID to OTU table you generated
-otu_df <- read_tsv(paste0(path_to_work_dir, "/5_laca/quant/seqID_to_otu.tsv"))
+otu_df <- read_tsv(paste0(path_to_laca_dir, "/quant/seqID_to_otu.tsv"))
 
 # Read in the taxonomy assignments for the otus
-otu_taxonomy_df <- read_tsv(paste0(path_to_work_dir, "/5_laca/sintax_OTUs.tsv"), col_names = FALSE)
+otu_taxonomy_df <- read_tsv(paste0(path_to_laca_dir, "/OTU_sintax.tsv"), col_names = FALSE)
 
 # Read in EMU's taxonomy table for reference
 raw_taxon_table <- read_tsv(paste0(path_to_data_dir,"/taxonomy.tsv"))
