@@ -62,10 +62,15 @@ cd $WORK_DIR
 
 
 ################################################ Prep LACA read_dir ################################################
-if [[ ! -e 5_laca ]]; then
-    mkdir 5_laca
+if [[ -z "$LACA_OUT" ]]; then
+    echo "LACA output directory not provided, using default"
+    LACA_OUT="$WORK_DIR"/5_laca
 fi
-cd 5_laca
+
+if [[ ! -e $LACA_OUT ]]; then
+    mkdir $LACA_OUT
+fi
+cd $LACA_OUT
 
 if [[ ! -e demultiplexed_reads ]]; then
     mkdir demultiplexed_reads
@@ -87,9 +92,10 @@ cat << EOF > laca_file_setup.sh
 #SBATCH --mail-type=FAIL
 
 
-cd $WORK_DIR/5_laca/demultiplexed_reads
+cd $LACA_OUT/demultiplexed_reads
 
 WORK_DIR=$WORK_DIR
+LACA_OUT=$LACA_OUT
 LIBRARY=$LIBRARY
 BARCODES=(${BARCODE_SEQUENCE[@]})
 
@@ -113,7 +119,7 @@ do
     for b in "${BARCODES[@]}";
         do
             #go to folder
-            cd $WORK_DIR/5_laca/demultiplexed_reads
+            cd $LACA_OUT/demultiplexed_reads
             
             # New sample names
             SAMPLE=$((i * 100 + b))
@@ -139,12 +145,12 @@ fi
 
 ################################################ Prep laca config file ################################################
 
-cd $WORK_DIR/5_laca/
+cd $LACA_OUT
 
 # creates the config file for laca
 laca init --dbdir $LACA_DIR \
-    --workdir $WORK_DIR/5_laca \
-    --demuxdir $WORK_DIR/5_laca/demultiplexed_reads \
+    --workdir $LACA_OUT \
+    --demuxdir $LACA_OUT/demultiplexed_reads \
     --jobs-max $MAX_JOBS \
     --no-primer-check \
     --ont
@@ -167,7 +173,7 @@ cat << EOF > laca_run.sh
 #SBATCH --mail-type=FAIL
 
 
-cd $WORK_DIR/5_laca/
+cd $LACA_OUT
 EOF
 
 if [ $CONDA == "conda" ]; then
