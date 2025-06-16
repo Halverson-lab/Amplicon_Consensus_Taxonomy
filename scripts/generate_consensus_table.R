@@ -60,7 +60,16 @@ if(is_gnoto == TRUE){
   gnotobiotic <- column_to_rownames(gnotobiotic, var = "barcode_list")
 }
 
+#decision tree thresholds
+low_threshold <- Sys.getenv("NA_THRESHOLD")
+if(!(low_threshold > 0 & low_threshold < 1)){
+  low_threshold <- 0.3
+} 
 
+high_threshold <- Sys.getenv("SINTAX_THRESHOLD")
+if(!(high_threshold > 0 & high_threshold < 1)){
+  high_threshold <- 0.7
+} 
 #### Format dataframes, including the taxonomy dataframes. Do not edit, unless absolutely necessary ####
 
 #Format emu taxonomy reference
@@ -193,40 +202,40 @@ combine_taxonomy <- function(sample_id, sintax_df, emu_df){
   # Confidence thresholds (0.3 and 0.7) were chosen by looking at zymo community samples, but cutoffs can be changed to preference
   if(gnoto == T){
     all_assignments <- all_assignments %>% 
-      mutate(final_taxon = case_when((sintax_CI <= 0.3) & !(emu %in% syncom_list) ~ NA, # if sintax has low confidence and emu's assignment is not int the syncom list then NA
+      mutate(final_taxon = case_when((sintax_CI <= low_threshold) & !(emu %in% syncom_list) ~ NA, # if sintax has low confidence and emu's assignment is not int the syncom list then NA
                                      (sintax == emu) ~ emu, #if emu and sintax agree then pick one
-                                     (is.na(emu)) & (sintax_CI >= 0.7) ~ sintax, #if emu is empty and sintax decently confident then sintax
-                                     (is.na(emu)) & (sintax_CI < 0.7) & (otu_taxa_CI >= 0.7) ~ otu_taxa, #if emu is empty, sintax is not cofident, and OTU is then use OTU
-                                     (is.na(emu)) & (sintax_CI < 0.7) & (otu_taxa_CI < 0.7) ~ NA, # if emu is empty, and sintax and the otu are not confident then NA
+                                     (is.na(emu)) & (sintax_CI >= high_threshold) ~ sintax, #if emu is empty and sintax decently confident then sintax
+                                     (is.na(emu)) & (sintax_CI < high_threshold) & (otu_taxa_CI >= high_threshold) ~ otu_taxa, #if emu is empty, sintax is not cofident, and OTU is then use OTU
+                                     (is.na(emu)) & (sintax_CI < high_threshold) & (otu_taxa_CI < high_threshold) ~ NA, # if emu is empty, and sintax and the otu are not confident then NA
                                      (sintax != emu) ~ emu, #if there is an emu assignment and it doesn't match sintax, choose emu
                                      .default = NA)) 
   }else{
     # experiment has a SynCom
     if(syncom == T){
       all_assignments <- all_assignments %>%
-        mutate(final_taxon = case_when((sintax_CI <= 0.3) & !(emu %in% syncom_list) ~ NA, # if sintax has low confidence and emu's assignment is not int the syncom list then NA
+        mutate(final_taxon = case_when((sintax_CI <= low_threshold) & !(emu %in% syncom_list) ~ NA, # if sintax has low confidence and emu's assignment is not int the syncom list then NA
                                        (sintax == emu) ~ sintax,  #if emu and sintax agree then pick one
-                                       (is.na(emu)) & (sintax_CI >= 0.7) ~ sintax, #if emu is empty and sintax decently confident then sintax
-                                       (is.na(emu)) & (sintax_CI < 0.7) & (otu_taxa_CI >= 0.7) ~ otu_taxa, #if emu is empty, sintax is not confident, and OTU is then use OTU
-                                       (is.na(emu)) & (sintax_CI < 0.7) & (otu_taxa_CI < 0.7) ~ NA, # if emu is empty, and sintax and the otu are not confident then NA
+                                       (is.na(emu)) & (sintax_CI >= high_threshold) ~ sintax, #if emu is empty and sintax decently confident then sintax
+                                       (is.na(emu)) & (sintax_CI < high_threshold) & (otu_taxa_CI >= high_threshold) ~ otu_taxa, #if emu is empty, sintax is not confident, and OTU is then use OTU
+                                       (is.na(emu)) & (sintax_CI < high_threshold) & (otu_taxa_CI < high_threshold) ~ NA, # if emu is empty, and sintax and the otu are not confident then NA
                                        (sintax != emu) & (emu %in% syncom_list) ~ emu, # emu and sintax don't match, but emu's assignment is in the syncom, then choose emu
-                                       (sintax != emu) & !(emu %in% syncom_list) & (sintax_CI >= 0.7) ~ sintax, # emu and sintax don't agree, emu isn't in the syncom, and sintax is confident, then choose sintax
-                                       (sintax != emu) & !(emu %in% syncom_list) & (sintax_CI < 0.7) & (sintax == otu_taxa) ~ sintax, # sintax and otu agree, but emu doesn't and its not a syncom, choose sintax
-                                       (sintax != emu) & !(emu %in% syncom_list) & (sintax_CI < 0.7) & (sintax != otu_taxa) & (emu == otu_taxa) ~ emu, # emu and otu agree, choose them
-                                       (sintax != emu) & !(emu %in% syncom_list) & (sintax_CI < 0.7) & (sintax != otu_taxa) & (emu != otu_taxa) ~ NA, # no one agrees and sintax is not confident, NA
+                                       (sintax != emu) & !(emu %in% syncom_list) & (sintax_CI >= high_threshold) ~ sintax, # emu and sintax don't agree, emu isn't in the syncom, and sintax is confident, then choose sintax
+                                       (sintax != emu) & !(emu %in% syncom_list) & (sintax_CI < high_threshold) & (sintax == otu_taxa) ~ sintax, # sintax and otu agree, but emu doesn't and its not a syncom, choose sintax
+                                       (sintax != emu) & !(emu %in% syncom_list) & (sintax_CI < high_threshold) & (sintax != otu_taxa) & (emu == otu_taxa) ~ emu, # emu and otu agree, choose them
+                                       (sintax != emu) & !(emu %in% syncom_list) & (sintax_CI < high_threshold) & (sintax != otu_taxa) & (emu != otu_taxa) ~ NA, # no one agrees and sintax is not confident, NA
                                        .default = NA)) 
     }else{
       #experiment does not have a SynCom
       all_assignments <- all_assignments %>%
-        mutate(final_taxon = case_when((sintax_CI <= 0.3) ~ NA, # sintax has low CI then NA
+        mutate(final_taxon = case_when((sintax_CI <= low_threshold) ~ NA, # sintax has low CI then NA
                                        (sintax == emu) ~ sintax, #if emu and sintax agree then pick one
-                                       (is.na(emu)) & (sintax_CI >= 0.7) ~ sintax, #if emu is empty and sintax decently confident then sintax
-                                       (is.na(emu)) & (sintax_CI < 0.7) & (otu_taxa_CI >= 0.7) ~ otu_taxa, #if emu is empty, sintax is not confident, and OTU is then use OTU
-                                       (is.na(emu)) & (sintax_CI < 0.7) & (otu_taxa_CI < 0.7) ~ NA, # if emu is empty, and sintax and the otu are not confident then NA
-                                       (sintax != emu) & (sintax_CI >= 0.7) ~ sintax, # emu and sintax don't agree and sintax is confident, then choose sintax
-                                       (sintax != emu) & (sintax_CI < 0.7) & (sintax == otu_taxa) ~ sintax, # sintax and otu agree, choose sintax
-                                       (sintax != emu) & (sintax_CI < 0.7) & (sintax != otu_taxa) & (emu == otu_taxa) ~ emu, # emu and otu agree, choose emu
-                                       (sintax != emu) & (sintax_CI < 0.7) & (sintax != otu_taxa) & (emu != otu_taxa) ~ NA, # no one agrees then NA
+                                       (is.na(emu)) & (sintax_CI >= high_threshold) ~ sintax, #if emu is empty and sintax decently confident then sintax
+                                       (is.na(emu)) & (sintax_CI < high_threshold) & (otu_taxa_CI >= high_threshold) ~ otu_taxa, #if emu is empty, sintax is not confident, and OTU is then use OTU
+                                       (is.na(emu)) & (sintax_CI < high_threshold) & (otu_taxa_CI < high_threshold) ~ NA, # if emu is empty, and sintax and the otu are not confident then NA
+                                       (sintax != emu) & (sintax_CI >= high_threshold) ~ sintax, # emu and sintax don't agree and sintax is confident, then choose sintax
+                                       (sintax != emu) & (sintax_CI < high_threshold) & (sintax == otu_taxa) ~ sintax, # sintax and otu agree, choose sintax
+                                       (sintax != emu) & (sintax_CI < high_threshold) & (sintax != otu_taxa) & (emu == otu_taxa) ~ emu, # emu and otu agree, choose emu
+                                       (sintax != emu) & (sintax_CI < high_threshold) & (sintax != otu_taxa) & (emu != otu_taxa) ~ NA, # no one agrees then NA
                                        .default = NA))
     }
   }
