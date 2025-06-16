@@ -1,18 +1,18 @@
 ################################### General Parameters ###################################
-#email for slurm notifications
-EMAIL=ashleyp1@iastate.edu
+# email for slurm notifications
+EMAIL=user@university.edu
 
-#Main work directory
+# Main work directory
 WORK_DIR=/path/to/work/dir/Amplicon_Consensus_Taxonomy
 
-#Conda type (options are conda, mamba, micromamba)
+# Conda type (options are conda, mamba, micromamba)
 CONDA=mamba
 ENV_DIR=/path/to/dir/Amplicon_Consensus_Taxonomy/envs
 
-#Number of libraries
+# Number of libraries
 LIBRARY=2
 
-#Max number of unique barcodes 
+# Max number of unique barcodes 
 BARCODES=72
 # Barcodes should be numbered and you put in the numbers you used
 # ({1..72}) is the range from 1 to 72
@@ -21,28 +21,28 @@ BARCODES=72
 BARCODE_SEQUENCE=({1..72})
 
 ################################### QC and Demux Parameters ###################################
-#CPUs/Threads
+# CPUs/Threads
 QC_THREADS=16
 
-#NanoFilt parameters for filtering before demultiplexing
+# NanoFilt parameters for filtering before demultiplexing
 LOOSE_MIN_LENGTH=800
 LOOSE_MAX_LENGTH=4000
 LOOSE_MIN_Q=12
 
-#NanoFilt parameters for filtering after demultiplexing
+# NanoFilt parameters for filtering after demultiplexing
 
-#If you have one set of amplicon lengths then put false in MULTI_LENGTH and just fill in the strict parameters
+# If you have one set of amplicon lengths then put false in MULTI_LENGTH and just fill in the strict parameters
 MULTI_LENGTH=TRUE
 
 STRICT_MIN_LENGTH=1300
 STRICT_MAX_LENGTH=1700
 STRICT_MIN_Q=15
 
-#If you have multiple amplicon lengths then list parameters for each set using the format below. You can list as many sets as you need, but they must be named in numerical order (i.e. set_1, set_2, set_3)
-#Number of different amplicon lengths
+# If you have multiple amplicon lengths then list parameters for each set using the format below. You can list as many sets as you need, but they must be named in numerical order (i.e. set_1, set_2, set_3)
+# Number of different amplicon lengths
 NUM_OF_AMPLICON_SETS=3
 
-#Samples in set 1, barcodes 1-5 in library 1
+# Samples in set 1, barcodes 1-5 in library 1
 LIB_SET_1=1
 BARCODE_SET_1=({1..5})
 
@@ -50,7 +50,7 @@ MIN_1=1200
 MAX_1=1400
 MINQ_1=15
 
-#Samples in set 2, barcodes 7,9,10,13 in library 1
+# Samples in set 2, barcodes 7,9,10,13 in library 1
 LIB_SET_2=2
 BARCODE_SET_2=(7 9 10 13)
 
@@ -58,7 +58,7 @@ MIN_2=800
 MAX_2=1000
 MINQ_2=14
 
-#Samples in set 3, barcodes 13-15 in library 1 and 2
+# Samples in set 3, barcodes 13-15 in library 1 and 2
 LIB_SET_3=({1..3})
 BARCODE_SET_3=({13..15})
 
@@ -75,7 +75,7 @@ BARCODE_FILE=/path/to/dir/Amplicon_Consensus_Taxonomy/barcodes.fasta
 BARCODE_OVERLAP=12
 BARCODE_ERROR=1
 
-#number of hours for the slurm job, increase if it times out
+# number of hours for the slurm job, increase if it times out
 DEMUX_JOB_TIME=6 
 
 
@@ -94,12 +94,12 @@ RRNDB=https://rrndb.umms.med.umich.edu/downloads/rrnDB-5.9_16S_rRNA.fasta.zip
 # fasta file of sequences to be added
 USER_SEQ=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases/new_seq.fasta
 
-#2 column tab delimited file of sequence headers and taxids
+# 2 column tab delimited file of sequence headers and taxids
 USER_SEQ2TAX=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases/new_seq2taxid.txt
 
-#if adding taxids that do not exist in NCBI (such as synthetic sequences)
-#tab delimited file with taxid,kingdom,phylum,class,order,family,genus,species,t_kingdom,t_phylum,t_class,t_order,t_family,t_genus,t_species
-#for each new taxid (if taxid is already present in database then you can leave this empty)
+# if adding taxids that do not exist in NCBI (such as synthetic sequences)
+# tab delimited file with taxid,kingdom,phylum,class,order,family,genus,species,t_kingdom,t_phylum,t_class,t_order,t_family,t_genus,t_species
+# for each new taxid (if taxid is already present in database then you can leave this empty)
 USER_TAX=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases/new_taxids.tsv
 
 # File containing list of NCBI accessions (can be RefSeq assembly ids or nuceotide ids)
@@ -108,21 +108,30 @@ ACC_LIST=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases/accessions_
 
 ################################### Taxonomy Parameters ###################################
 
-#LACA Parameters
+# LACA Parameters
 LACA_DIR=/path/to/dir/Amplicon_Consensus_Taxonomy/laca
 MAX_JOBS=64 #max LACA will use for one task
 SLURM_MAX_CPUS=128 #Must be greater than MAX_JOBS. Depends on number of reads but more will speed up the slower parts signifcantly
 SLURM_MAX_MEM=500G
 LACA_JOB_TIME=7 #Number of days, (more reads = more time)
 
+# Directory for laca output, if empty then default is $WORK_DIR/5_laca
+LACA_OUT=/path/to/dir/Amplicon_Consensus_Taxonomy/5_laca
 
-#Sintax Parameters
+# EMU parameters
+EMU_DB=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases
+EMU_THREADS=32
+
+# Directory for emu output, if empty then default is $WORK_DIR/6_emu
+EMU_OUT=/path/to/dir/Amplicon_Consensus_Taxonomy/6_emu
+
+# Sintax Parameters
 SINTAX_DB=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases/sintax_db.fasta
 SINTAX_THREADS=32
 
-#EMU parameters
-EMU_DB=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases
-EMU_THREADS=32
+# Directory for sintax output, if empty then default is $WORK_DIR/7_sintax
+SINTAX_OUT=/path/to/dir/Amplicon_Consensus_Taxonomy/7_sintax
+
 
 
 ################################### Generate Consensus Parameters ###################################
@@ -133,6 +142,7 @@ GNOTO_LIST=/path/to/dir/Amplicon_Consensus_Taxonomy/sample_info/gnotobiotic_samp
 
 # Does the experiment use SynComs? Answer TRUE or FALSE
 SYNCOM=TRUE
+
 # If sample includes syncoms the include a tsv of column labeled species, containing species name with taxid of each member of the syncom 
 # species names must match format if genus_species_taxid, for example "Pseudomonas_putida_303"
 SYNCOM_SPECIES=/path/to/dir/Amplicon_Consensus_Taxonomy/sample_info/syncom_species_list.tsv
