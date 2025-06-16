@@ -13,6 +13,7 @@ usage() {
  echo " -e, --emu       Run EMU on samples"
  echo " -s, --sintax    Run sintax on samples"
  echo " -o, --otu       Run sintax on the LACA OTUs"
+ echo " -t, --test      Generate the slurm scripts but do not submit them"
 }
 
 if [ $# -eq 0 ]; then
@@ -40,6 +41,12 @@ while [[ $# -gt 0 ]]; do
     -o | --otu)
       otu_flag=true
       echo "Running sintax on LACA OTUs" >&2
+      ;;
+    -t | --test)
+      emu_flag=false
+      sintax_flag=false
+      otu_flag=false
+      echo "Generating slurm scripts" >&2
       ;;
     -h | --help)
       usage
@@ -88,26 +95,37 @@ fi
 cd $WORK_DIR
 
 #### make folders for sintax and emu
-if [[ ! -e 6_emu ]]; then
-    mkdir 6_emu
+if [[ -z "$EMU_OUT" ]]; then
+    echo "emu output directory not provided, using default"
+    EMU_OUT="$WORK_DIR"/6_emu
 fi
 
-if [[ ! -e 6_emu/read_assignments ]]; then
-    mkdir 6_emu/read_assignments
+if [[ ! -e $EMU_OUT ]]; then
+    mkdir $EMU_OUT
 fi
 
-if [[ ! -e 7_sintax ]]; then
-    mkdir 7_sintax
+if [[ ! -e $EMU_OUT/read_assignments ]]; then
+    mkdir $EMU_OUT/read_assignments
+fi
+
+if [[ -z "$SINTAX_OUT" ]]; then
+    echo "sintax output directory not provided, using default"
+    SINTAX_OUT="$WORK_DIR"/7_sintax
+fi
+
+if [[ ! -e $SINTAX_OUT ]]; then
+    mkdir $SINTAX_OUT
 fi
 
 #### if using the provided databases and they are still zipped then unzip them 
-if [[ -e sintax_db.fasta.gz ]]; then
-    gunzip taxonomy_databases/*.gz
+if [[ -e $DATABASE_DIR/sintax_db.fasta.gz ]]; then
+    cd $DATABASE_DIR
+    gunzip *.gz
 fi
 
 
 
-cd slurm_scripts
+cd $WORK_DIR/slurm_scripts
 ### Write the necessary slurm scripts
 
 JOB_TIME=$(($LIBRARY * 3))
@@ -128,9 +146,9 @@ cat << EOF > EMU_slurm.sh
 #SBATCH --array=$ARRAY_SEQUENCE
 
 
-cd $WORK_DIR/6_emu
+cd $EMU_OUT
 ENV_DIR=$ENV_DIR
-WORK_DIR=$WORK_DIR/6_emu
+EMU_OUT=$EMU_OUT
 READ_DIR=$WORK_DIR/4_NanoFilt_2
 EMU_DB=$EMU_DB
 THREADS=$EMU_THREADS
@@ -160,7 +178,7 @@ for read in  $READ_DIR/*0"${SLURM_ARRAY_TASK_ID}".fastq.gz; do
             --output-dir $(basename "$read" .fastq.gz) \
             --output-basename $(basename "$read" .fastq.gz) 
             
-        cp "$(basename "$read" .fastq.gz)"/*_read-assignment-distributions.tsv $WORK_DIR/read_assignments/
+        cp "$(basename "$read" .fastq.gz)"/*_read-assignment-distributions.tsv $EMU_OUT/read_assignments/
     fi
 done
 EOF
@@ -181,9 +199,9 @@ cat << EOF > Sintax_slurm.sh
 #SBATCH --array=$ARRAY_SEQUENCE
 
 
-cd $WORK_DIR/7_sintax
+cd $SINTAX_OUT
 ENV_DIR=$ENV_DIR
-WORK_DIR=$WORK_DIR/7_sintax
+SINTAX_OUT=$SINTAX_OUT
 READ_DIR=$WORK_DIR/4_NanoFilt_2
 SINTAX_DB=$SINTAX_DB
 SINTAX_CUTOFF=$SINTAX_CUTOFF
@@ -210,7 +228,7 @@ for read in  $READ_DIR/*0"${SLURM_ARRAY_TASK_ID}".fastq.gz; do
         vsearch --sintax \
             $read \
             --db $SINTAX_DB \
-            --tabbedout $WORK_DIR/"$(basename "$read" .fastq.gz)"_sintax.tsv \
+            --tabbedout $SINTAX_OUT/"$(basename "$read" .fastq.gz)"_sintax.tsv \
             --sintax_cutoff 0.5 \
             --strand both \
             -notrunclabels \
@@ -237,9 +255,9 @@ cat << EOF > Sintax_OTU_slurm.sh
 #SBATCH --mail-type=FAIL
 
 
-cd $WORK_DIR/5_laca
+cd $LACA_OUT
 ENV_DIR=$ENV_DIR
-READ_DIR=$WORK_DIR/5_laca
+READ_DIR=$LACA_OUT
 SINTAX_DB=$SINTAX_DB
 EOF
 
@@ -279,7 +297,7 @@ if [[ $sintax_flag == "true" ]]; then
 fi
 
 if [[ $otu_flag == "true" ]]; then
-    if [[ -f $WORK_DIR/5_laca/rep_seqs.fasta ]]; then
+    if [[ -f $LACA_OUT/rep_seqs.fasta ]]; then
         sbatch Sintax_OTU_slurm.sh
     else
         echo "Cannot classify OTUs because LACA rep_seqs.fasta does not exist." >&2
