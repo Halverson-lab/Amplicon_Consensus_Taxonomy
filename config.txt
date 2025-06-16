@@ -146,3 +146,9 @@ SYNCOM=TRUE
 # If sample includes syncoms the include a tsv of column labeled species, containing species name with taxid of each member of the syncom 
 # species names must match format if genus_species_taxid, for example "Pseudomonas_putida_303"
 SYNCOM_SPECIES=/path/to/dir/Amplicon_Consensus_Taxonomy/sample_info/syncom_species_list.tsv
+
+# Assignments with a confidence below this will be set to NA for that level
+NA_THRESHOLD=0.3
+
+# Assignments above this will favor the sintax output
+SINTAX_THRESHOLD=0.7
