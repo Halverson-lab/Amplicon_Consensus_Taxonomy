@@ -46,13 +46,13 @@ done
 
 if [ $CONDA == "conda" ]; then
     eval "$(conda shell hook --shell bash)"
-
+    conda activate laca
 elif [ $CONDA == "mamba" ]; then
     eval "$(mamba shell hook --shell bash)"
-    
+    mamba activate laca
 elif [ $CONDA == "micromamba" ]; then
     eval "$(micromamba shell hook --shell bash)"
-
+    micromamba activate laca
 else
     echo "CONDA can be conda, mamba, or micromamba" 
     exit 1
@@ -128,7 +128,7 @@ do
             mkdir sample"${SAMPLE}"
             
             # copy the filtered reads into the new folder and rename them
-            cp $WORK_DIR/4_NanoFilt_2/"$i"-"$b".fastq.gz sample"${SAMPLE}"/sample"${SAMPLE}".fastq.gz
+            cp $WORK_DIR/4_NanoFilt_2/"$i"_*0"$b".fastq.gz sample"${SAMPLE}"/sample"${SAMPLE}".fastq.gz
             
             # unzip the reads
             cd sample"${SAMPLE}" && gunzip sample"${SAMPLE}".fastq.gz
