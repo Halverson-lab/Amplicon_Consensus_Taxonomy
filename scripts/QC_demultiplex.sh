@@ -51,14 +51,14 @@ fi
 
 cd $WORK_DIR
 
-if [[ ! -e 2_NanoFilt_1 ]]; then
-    mkdir 2_NanoFilt_1
+if [[ ! -e 2_chopper_1 ]]; then
+    mkdir 2_chopper_1
 fi
 if [[ ! -e 3_Demultiplex ]]; then
     mkdir 3_Demultiplex
 fi
-if [[ ! -e 4_NanoFilt_2 ]]; then
-    mkdir 4_NanoFilt_2
+if [[ ! -e 4_chopper_2 ]]; then
+    mkdir 4_chopper_2
 fi
 if [[ ! -e slurm_scripts ]]; then
     mkdir slurm_scripts
@@ -70,14 +70,14 @@ cd $WORK_DIR/slurm_scripts
 
 
 ################################################ First round of filtering, pre-demux ################################################
-cat << EOF > NanoFilt_1_slurm.sh
+cat << EOF > chopper_1_slurm.sh
 #!/bin/bash
 
 #SBATCH --time=0-4:00:00  # max job runtime
 #SBATCH --cpus-per-task=$QC_THREADS  # number of processor cores
 #SBATCH --nodes=1  # number of nodes
 #SBATCH --mem=200G  # max memory
-#SBATCH -J "2_NanoFilt_1"  # job name
+#SBATCH -J "2_chopper_1"  # job name
 #SBATCH --mail-user=$EMAIL  # email address
 #SBATCH --mail-type=END
 #SBATCH --mail-type=FAIL
@@ -85,21 +85,21 @@ cat << EOF > NanoFilt_1_slurm.sh
 
 WORK_DIR=$WORK_DIR
 
-cd $WORK_DIR/2_NanoFilt_1
+cd $WORK_DIR/2_chopper_1
 EOF
 
 if [ $CONDA == "conda" ]; then
-    echo 'eval "$(conda shell hook --shell bash)"' >> NanoFilt_1_slurm.sh
-    echo "source activate $ENV_DIR/cutadapt-env" >> NanoFilt_1_slurm.sh
+    echo 'eval "$(conda shell hook --shell bash)"' >> chopper_1_slurm.sh
+    echo "source activate $ENV_DIR/cutadapt-env" >> chopper_1_slurm.sh
 elif [ $CONDA == "mamba" ]; then
-    echo 'eval "$(mamba shell hook --shell bash)"' >> NanoFilt_1_slurm.sh
-    echo "mamba activate $ENV_DIR/cutadapt-env" >> NanoFilt_1_slurm.sh
+    echo 'eval "$(mamba shell hook --shell bash)"' >> chopper_1_slurm.sh
+    echo "mamba activate $ENV_DIR/cutadapt-env" >> chopper_1_slurm.sh
 elif [ $CONDA == "micromamba" ]; then
-    echo 'eval "$(micromamba shell hook --shell bash)"' >> NanoFilt_1_slurm.sh
-    echo "micromamba activate $ENV_DIR/cutadapt-env" >> NanoFilt_1_slurm.sh
+    echo 'eval "$(micromamba shell hook --shell bash)"' >> chopper_1_slurm.sh
+    echo "micromamba activate $ENV_DIR/cutadapt-env" >> chopper_1_slurm.sh
 fi
 
-cat << EOF >> NanoFilt_1_slurm.sh
+cat << EOF >> chopper_1_slurm.sh
 
 LOOSE_MIN_LENGTH=$LOOSE_MIN_LENGTH
 LOOSE_MAX_LENGTH=$LOOSE_MAX_LENGTH
@@ -109,17 +109,17 @@ READ_DIR=$WORK_DIR/0_raw_reads
 
 EOF
 
-cat << 'EOF' >> NanoFilt_1_slurm.sh
+cat << 'EOF' >> chopper_1_slurm.sh
 
 
 if gunzip --test $READ_DIR/"${SLURM_ARRAY_TASK_ID}"_* 2>/dev/null 1>/dev/null; then
   gunzip -c $READ_DIR/"${SLURM_ARRAY_TASK_ID}"_* \
-    | NanoFilt --length $LOOSE_MIN_LENGTH --maxlength $LOOSE_MAX_LENGTH -q $LOOSE_MIN_Q \
+    | chopper --minlength $LOOSE_MIN_LENGTH --maxlength $LOOSE_MAX_LENGTH -q $LOOSE_MIN_Q \
     | gzip > "${SLURM_ARRAY_TASK_ID}"_filt.fastq.gz
 else
   gzip $READ_DIR/"${SLURM_ARRAY_TASK_ID}"_*
   gunzip -c $READ_DIR/"${SLURM_ARRAY_TASK_ID}"_* \
-    | NanoFilt --length $LOOSE_MIN_LENGTH --maxlength $LOOSE_MAX_LENGTH -q $LOOSE_MIN_Q \
+    | chopper --minlength $LOOSE_MIN_LENGTH --maxlength $LOOSE_MAX_LENGTH -q $LOOSE_MIN_Q \
     | gzip > "${SLURM_ARRAY_TASK_ID}"_filt.fastq.gz
 fi
 
@@ -144,7 +144,7 @@ cat << EOF > Demux_slurm.sh
 cd $WORK_DIR/3_Demultiplex
 
 WORK_DIR=$WORK_DIR
-READ_DIR=$WORK_DIR/2_NanoFilt_1
+READ_DIR=$WORK_DIR/2_chopper_1
 BARCODE_FILE=$BARCODE_FILE
 BARCODE_OVERLAP=$BARCODE_OVERLAP
 BARCODE_ERROR=$BARCODE_ERROR
@@ -179,35 +179,35 @@ if [ $MULTI_LENGTH == "FALSE" ]; then
     #Convert the barcode sequence into slurm format
     ARRAY_SEQUENCE=$(IFS=,; echo "${BARCODE_SEQUENCE[*]}")
     
-    cat << EOF > NanoFilt_2_slurm.sh
+    cat << EOF > chopper_2_slurm.sh
 #!/bin/bash 
 
 #SBATCH --time=0-${JOB_TIME}:00:00  # max job runtime
 #SBATCH --cpus-per-task=$QC_THREADS  # number of processor cores
 #SBATCH --nodes=1  # number of nodes
 #SBATCH --mem=200G  # max memory
-#SBATCH -J "NanoFilt_2"  # job name
+#SBATCH -J "chopper_2"  # job name
 #SBATCH --mail-user=$EMAIL  # email address
 #SBATCH --mail-type=END
 #SBATCH --mail-type=FAIL
 #SBATCH --array=$ARRAY_SEQUENCE
 
 WORK_DIR=$WORK_DIR
-cd $WORK_DIR/4_NanoFilt_2
+cd $WORK_DIR/4_chopper_2
 EOF
 
     if [ $CONDA == "conda" ]; then
-        echo 'eval "$(conda shell hook --shell bash)"' >> NanoFilt_2_slurm.sh
-        echo "source activate $ENV_DIR/cutadapt-env" >> NanoFilt_2_slurm.sh
+        echo 'eval "$(conda shell hook --shell bash)"' >> chopper_2_slurm.sh
+        echo "source activate $ENV_DIR/cutadapt-env" >> chopper_2_slurm.sh
     elif [ $CONDA == "mamba" ]; then
-        echo 'eval "$(mamba shell hook --shell bash)"' >> NanoFilt_2_slurm.sh
-        echo "mamba activate $ENV_DIR/cutadapt-env" >> NanoFilt_2_slurm.sh
+        echo 'eval "$(mamba shell hook --shell bash)"' >> chopper_2_slurm.sh
+        echo "mamba activate $ENV_DIR/cutadapt-env" >> chopper_2_slurm.sh
     elif [ $CONDA == "micromamba" ]; then
-        echo 'eval "$(micromamba shell hook --shell bash)"' >> NanoFilt_2_slurm.sh
-        echo "micromamba activate $ENV_DIR/cutadapt-env" >> NanoFilt_2_slurm.sh
+        echo 'eval "$(micromamba shell hook --shell bash)"' >> chopper_2_slurm.sh
+        echo "micromamba activate $ENV_DIR/cutadapt-env" >> chopper_2_slurm.sh
     fi
 
-    cat << EOF >> NanoFilt_2_slurm.sh
+    cat << EOF >> chopper_2_slurm.sh
 READ_DIR=$WORK_DIR/3_Demultiplex
 
 STRICT_MIN_LENGTH=$MIN_LENGTH
@@ -216,11 +216,11 @@ STRICT_MIN_Q=$MIN_Q
 
 EOF
 
-    cat << 'EOF' >> NanoFilt_2_slurm.sh
+    cat << 'EOF' >> chopper_2_slurm.sh
 for read in $READ_DIR/*0"${SLURM_ARRAY_TASK_ID}".fastq.gz; do
     if [[ -e $read ]] ; then
         gunzip -c "$read" \
-            | NanoFilt --length $STRICT_MIN_LENGTH --maxlength $STRICT_MAX_LENGTH -q $STRICT_MIN_Q \
+            | chopper --minlength $STRICT_MIN_LENGTH --maxlength $STRICT_MAX_LENGTH -q $STRICT_MIN_Q \
             | gzip > $(basename "$read")
     fi
 done
@@ -253,35 +253,35 @@ elif [ $MULTI_LENGTH == "TRUE" ]; then
         ARRAY_SEQUENCE=$(IFS=,; echo "${BARCODE_SET_SEQUENCE[*]}")
         
         #Write a slurm script for each amplicon set
-        cat << EOF > NanoFilt_set"$m"_slurm.sh
+        cat << EOF > chopper_set"$m"_slurm.sh
 #!/bin/bash 
 
 #SBATCH --time=0-${JOB_TIME}:00:00  # max job runtime
 #SBATCH --cpus-per-task=$QC_THREADS  # number of processor cores
 #SBATCH --nodes=1  # number of nodes
 #SBATCH --mem=200G  # max memory
-#SBATCH -J "NanoFilt_2"  # job name
+#SBATCH -J "chopper_2"  # job name
 #SBATCH --mail-user=$EMAIL  # email address
 #SBATCH --mail-type=END
 #SBATCH --mail-type=FAIL
 #SBATCH --array=$ARRAY_SEQUENCE
 
 WORK_DIR=$WORK_DIR
-cd $WORK_DIR/4_NanoFilt_2
+cd $WORK_DIR/4_chopper_2
 EOF
 
         if [ $CONDA == "conda" ]; then
-            echo 'eval "$(conda shell hook --shell bash)"' >> NanoFilt_set"$m"_slurm.sh
-            echo "source activate $ENV_DIR/cutadapt-env" >> NanoFilt_set"$m"_slurm.sh
+            echo 'eval "$(conda shell hook --shell bash)"' >> chopper_set"$m"_slurm.sh
+            echo "source activate $ENV_DIR/cutadapt-env" >> chopper_set"$m"_slurm.sh
         elif [ $CONDA == "mamba" ]; then
-            echo 'eval "$(mamba shell hook --shell bash)"' >> NanoFilt_set"$m"_slurm.sh
-            echo "mamba activate $ENV_DIR/cutadapt-env" >> NanoFilt_set"$m"_slurm.sh
+            echo 'eval "$(mamba shell hook --shell bash)"' >> chopper_set"$m"_slurm.sh
+            echo "mamba activate $ENV_DIR/cutadapt-env" >> chopper_set"$m"_slurm.sh
         elif [ $CONDA == "micromamba" ]; then
-            echo 'eval "$(micromamba shell hook --shell bash)"' >> NanoFilt_set"$m"_slurm.sh
-            echo "micromamba activate $ENV_DIR/cutadapt-env" >> NanoFilt_set"$m"_slurm.sh
+            echo 'eval "$(micromamba shell hook --shell bash)"' >> chopper_set"$m"_slurm.sh
+            echo "micromamba activate $ENV_DIR/cutadapt-env" >> chopper_set"$m"_slurm.sh
         fi
 
-        cat << EOF >> NanoFilt_set"$m"_slurm.sh
+        cat << EOF >> chopper_set"$m"_slurm.sh
 READ_DIR=$WORK_DIR/3_Demultiplex
 
 STRICT_MIN_LENGTH=$MIN_LENGTH
@@ -291,11 +291,11 @@ STRICT_MIN_Q=$MIN_Q
 for n in ${LIB_SEQUENCE[@]};
 EOF
 
-        cat << 'EOF' >> NanoFilt_set"$m"_slurm.sh
+        cat << 'EOF' >> chopper_set"$m"_slurm.sh
 do
     if [[ -e $READ_DIR/"$n"_*0"${SLURM_ARRAY_TASK_ID}".fastq.gz ]] ; then
         gunzip -c $READ_DIR/"$n"_*0"${SLURM_ARRAY_TASK_ID}".fastq.gz \
-            | NanoFilt --length $STRICT_MIN_LENGTH --maxlength $STRICT_MAX_LENGTH -q $STRICT_MIN_Q \
+            | chopper --minlength $STRICT_MIN_LENGTH --maxlength $STRICT_MAX_LENGTH -q $STRICT_MIN_Q \
             | gzip > $(basename "$READ_DIR/"$n"_*0"${SLURM_ARRAY_TASK_ID}".fastq.gz")
     fi
 done
@@ -312,29 +312,29 @@ fi
 #Check if the corresponding folder is empty then submit the relevant slurm scripts to populate that file
 
 if [ $MULTI_LENGTH == "TRUE" ]; then
-    if [ -z "$( ls -A $WORK_DIR/2_NanoFilt_1 )" ]; then
-        JOBID1=$(sbatch --parsable NanoFilt_1_slurm.sh)
+    if [ -z "$( ls -A $WORK_DIR/2_chopper_1 )" ]; then
+        JOBID1=$(sbatch --parsable chopper_1_slurm.sh)
         JOBID2=$(sbatch --parsable --dependency=afterok:$JOBID1 Demux_slurm.sh)
-        for m in $(seq 1 $NUM_OF_AMPLICON_SETS); do  sbatch --parsable --dependency=afterok:$JOBID2 NanoFilt_set${m}_slurm.sh ; done
+        for m in $(seq 1 $NUM_OF_AMPLICON_SETS); do  sbatch --parsable --dependency=afterok:$JOBID2 chopper_set${m}_slurm.sh ; done
     elif [ -z "$( ls -A $WORK_DIR/3_Demultiplex )" ]; then
         JOBID2=$(sbatch --parsable Demux_slurm.sh)
-        sbatch --parsable --dependency=afterok:$JOBID2 NanoFilt_2_slurm.sh
-        for m in $(seq 1 $NUM_OF_AMPLICON_SETS); do  sbatch --parsable --dependency=afterok:$JOBID2 NanoFilt_set${m}_slurm.sh ; done
-    elif [ -z "$( ls -A $WORK_DIR/4_NanoFilt_2 )" ]; then
-        for m in $(seq 1 $NUM_OF_AMPLICON_SETS); do  sbatch --parsable NanoFilt_set${m}_slurm.sh ; done
+        sbatch --parsable --dependency=afterok:$JOBID2 chopper_2_slurm.sh
+        for m in $(seq 1 $NUM_OF_AMPLICON_SETS); do  sbatch --parsable --dependency=afterok:$JOBID2 chopper_set${m}_slurm.sh ; done
+    elif [ -z "$( ls -A $WORK_DIR/4_chopper_2 )" ]; then
+        for m in $(seq 1 $NUM_OF_AMPLICON_SETS); do  sbatch --parsable chopper_set${m}_slurm.sh ; done
     else
         echo "Folders 2-4 already contain files"
     fi
 else
-    if [ -z "$( ls -A $WORK_DIR/2_NanoFilt_1 )" ]; then
-        JOBID1=$(sbatch --parsable NanoFilt_1_slurm.sh)
+    if [ -z "$( ls -A $WORK_DIR/2_chopper_1 )" ]; then
+        JOBID1=$(sbatch --parsable chopper_1_slurm.sh)
         JOBID2=$(sbatch --parsable --dependency=afterok:$JOBID1 Demux_slurm.sh)
-        sbatch --parsable --dependency=afterok:$JOBID2 NanoFilt_2_slurm.sh
+        sbatch --parsable --dependency=afterok:$JOBID2 chopper_2_slurm.sh
     elif [ -z "$( ls -A $WORK_DIR/3_Demultiplex )" ]; then
         JOBID2=$(sbatch --parsable Demux_slurm.sh)
-        sbatch --parsable --dependency=afterok:$JOBID2 NanoFilt_2_slurm.sh
-    elif [ -z "$( ls -A $WORK_DIR/4_NanoFilt_2 )" ]; then
-        sbatch --parsable NanoFilt_2_slurm.sh
+        sbatch --parsable --dependency=afterok:$JOBID2 chopper_2_slurm.sh
+    elif [ -z "$( ls -A $WORK_DIR/4_chopper_2 )" ]; then
+        sbatch --parsable chopper_2_slurm.sh
     else
         echo "Folders 2-4 already contain files"
     fi
