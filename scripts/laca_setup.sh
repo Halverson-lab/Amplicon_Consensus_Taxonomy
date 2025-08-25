@@ -128,7 +128,7 @@ do
             mkdir sample"${SAMPLE}"
             
             # copy the filtered reads into the new folder and rename them
-            cp $WORK_DIR/4_NanoFilt_2/"$i"_*0"$b".fastq.gz sample"${SAMPLE}"/sample"${SAMPLE}".fastq.gz
+            cp $WORK_DIR/4_chopper_2/"$i"_*0"$b".fastq.gz sample"${SAMPLE}"/sample"${SAMPLE}".fastq.gz
             
             # unzip the reads
             cd sample"${SAMPLE}" && gunzip sample"${SAMPLE}".fastq.gz
