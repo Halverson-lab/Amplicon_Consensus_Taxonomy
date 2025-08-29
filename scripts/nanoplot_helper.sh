@@ -47,8 +47,7 @@ cat << EOF > NanoPlot_slurm.sh
 #SBATCH --mem=200G  # max memory
 #SBATCH -J "NanoPlot"  # job name
 #SBATCH --mail-user=$EMAIL  # email address
-#SBATCH --mail-type=END
-#SBATCH --mail-type=FAIL
+#SBATCH --mail-type=END,FAIL
 #SBATCH --array=1-$LIBRARY
 
 
