@@ -155,9 +155,7 @@ if [[ $build_flag == "true" ]]; then
         #ACT_rrnDB.fasta and rrnDB_seq2taxid.txt are the only ones we need to keep
         rm rrnDB_header_list.txt rrnDB_header_refseq_list.txt old2newheader.tsv rrnDB_renamed.fasta seq2keep.txt
 
-
         ### re-format NCBI formatted files
-        
         #get fasta headers
         seqkit seq -n ncbi_16S.fasta > ncbi_16S_header.txt
 
@@ -194,26 +192,6 @@ if [[ $build_flag == "true" ]]; then
     | taxonkit reformat -t -f "{d}\t{p}\t{c}\t{o}\t{f}\t{g}\t{s}" \
     | csvtk cut -t -f -2 \
     | csvtk add-header -t -n taxid,domain,phylum,class,order,family,genus,species,t_domain,t_phylum,t_class,t_order,t_family,t_genus,t_species -o taxonomy.tsv
-
-    #remove special characters from the taxonomy
-    cat taxonomy.tsv | tr -d ';#&%' | tr -d "\'" > safe_taxonomy.tsv && mv ./safe_taxonomy.tsv ./taxonomy.tsv
-
-    # Build EMU formatted database
-    emu build-database ACT_DB --sequences sequences.fasta --seq2tax seq2taxid.txt --taxonomy-list taxonomy.tsv
-    mv ACT_DB/* ./ 
-    rm -r ACT_DB
-
-    # Directory should now contain species_taxid.fasta and taxonomy.tsv, whether just generated or user provided
-    [[ -z species_taxid.fasta ]] && { echo "species_taxid.fasta does not exist, please provide database files or run database_builder.sh -bd to build a default database" >&2; exit 1; }
-    [[ -z taxonomy.tsv ]] && { echo "taxonomy.tsv does not exist, please provide database files or run database_builder.sh -bd to build a default database" >&2; exit 1; }
-
-    # make the name list for converting from EMU to Sintax
-    seqkit seq species_taxid.fasta -n > name_list.txt
-    
-    # run the r script for converting EMU headers to Sintax headers
-    emu_to_sintax_db_converter.R
-    seqkit replace -p "\s.+" species_taxid.fasta | seqkit replace -p "(.+)" -r '{kv}' -k emu2sintax-header.tsv > sintax_db.fasta
-
 fi
 
 if [[ $ncbi_flag == "true" ]]; then
@@ -255,21 +233,6 @@ if [[ $ncbi_flag == "true" ]]; then
         | taxonkit reformat -t -f "{d}\t{p}\t{c}\t{o}\t{f}\t{g}\t{s}" \
         | csvtk cut -t -f -2 \
         | csvtk add-header -t -n taxid,domain,phylum,class,order,family,genus,species,t_domain,t_phylum,t_class,t_order,t_family,t_genus,t_species -o taxonomy.tsv
-
-    #remove special characters from the taxonomy
-    cat taxonomy.tsv | tr -d ';#&%' | tr -d "\'" > safe_taxonomy.tsv && mv ./safe_taxonomy.tsv ./taxonomy.tsv
-
-    #rebuild the emu formatted database with the added sequences
-    emu build-database ACT_DB --sequences sequences.fasta --seq2tax seq2taxid.txt --taxonomy-list taxonomy.tsv
-    mv ACT_DB/* ./
-    rm -r ACT_DB
-
-    # make the name list for converting from EMU to Sintax
-    seqkit seq species_taxid.fasta -n > name_list.txt
-
-    # run the r script for converting EMU headers to Sintax headers
-    emu_to_sintax_db_converter.R
-    seqkit replace -p "\s.+" species_taxid.fasta | seqkit replace -p "(.+)" -r '{kv}' -k emu2sintax-header.tsv > sintax_db.fasta
 fi
 
 if [[ $add_flag == "true" ]]; then
@@ -279,21 +242,54 @@ if [[ $add_flag == "true" ]]; then
     cat $USER_SEQ2TAX >> seq2taxid.txt
     if [[ -z "$USER_TAX" ]]; then
         cat $USER_TAX >> taxonomy.tsv
-        #remove special characters from the taxonomy
-        cat taxonomy.tsv | tr -d ';#&%' | tr -d "\'" > safe_taxonomy.tsv && mv ./safe_taxonomy.tsv ./taxonomy.tsv
-
     fi 
-
-    #rebuild the emu formatted database with the added sequences
-    emu build-database ACT_DB --sequences sequences.fasta --seq2tax seq2taxid.txt --taxonomy-list taxonomy.tsv
-    mv ACT_DB/* ./ 
-    rm -r ACT_DB
-
-    # make the name list for converting from EMU to Sintax
-    seqkit seq species_taxid.fasta -n > name_list.txt
-
-    # run the r script for converting EMU headers to Sintax headers
-    emu_to_sintax_db_converter.R
-    seqkit replace -p "\s.+" species_taxid.fasta | seqkit replace -p "(.+)" -r '{kv}' -k emu2sintax-header.tsv > sintax_db.fasta
 fi
 
+#remove special characters from the taxonomy
+cat taxonomy.tsv | tr -d ';#&%' | tr -d "\'" > safe_taxonomy.tsv && mv ./safe_taxonomy.tsv ./taxonomy.tsv
+
+# Build EMU formatted database
+emu build-database ACT_DB --sequences sequences.fasta --seq2tax seq2taxid.txt --taxonomy-list taxonomy.tsv
+mv ACT_DB/* ./ 
+rm -r ACT_DB
+
+# Directory should now contain species_taxid.fasta and taxonomy.tsv, whether just generated or user provided
+[[ -z species_taxid.fasta ]] && { echo "species_taxid.fasta does not exist, please provide database files or run database_builder.sh -bd to build a default database" >&2; exit 1; }
+[[ -z taxonomy.tsv ]] && { echo "taxonomy.tsv does not exist, please provide database files or run database_builder.sh -bd to build a default database" >&2; exit 1; }
+
+### dereplicate the database
+
+# abbreviate names because samtools has a maximum limit
+seqkit seq -i species_taxid.fasta > abbrev_species_taxid.fasta
+
+# minimap all against all and remove the abbreviated name file once done
+minimap2 -ax lr:hq -t $THREADS -K 500M -N 50 abbrev_species_taxid.fasta abbrev_species_taxid.fasta -o database_alignment.sam
+rm abbrev_species_taxid.fasta
+
+#script to convert the sam file into a csv containing the relevant info
+minimap_to_csv.py database_alignment.sam database_alignment_stats.csv
+
+# filter out self to self and matches in the same taxid, then calculate the percent match
+# final output is a file of read pairs that failed the similarity threshold
+cat database_alignment_stats.csv \
+    | csvtk filter2 -f '$QNAME != $RNAME' \
+    | csvtk mutate --after QNAME -f QNAME -n QTAXID -p "^([0-9].*?):" \
+    | csvtk mutate --after RNAME -f RNAME -n RTAXID -p "^([0-9].*?):" \
+    | csvtk filter2 -f '$QTAXID != $RTAXID' \
+    | csvtk mutate2 --after RLENGTH -n MINLENGTH -e '$QLENGTH < $RLENGTH ? $QLENGTH : $RLENGTH' \
+    | csvtk mutate2 --after NM -n PERCENTMATCH -e '$NM / $MINLENGTH' -w 5 \
+    | csvtk filter -f "PERCENTMATCH<0.005"  -o database_alignment_failed_reads.csv
+
+# take in the failed read alignments and output group notations, updated fasta headers, and updated taxonomy
+identify_minimap_groups.R database_alignment_failed_reads.csv
+
+# add the updated files to the existing db
+csvtk concat -t taxonomy.tsv grouped_taxonomies.tsv > taxonomy.tsv
+seqkit replace -p '^(\S+)(.+?)$' -r '{kv}$2' -k grouped-seq-headers.tsv species_taxid.fasta --keep-key > species_taxid.fasta
+
+# make the name list for converting from EMU to Sintax
+seqkit seq species_taxid.fasta -n > name_list.txt
+
+# run the r script for converting EMU headers to Sintax headers
+emu_to_sintax_db_converter.R
+seqkit replace -p "\s.+" species_taxid.fasta | seqkit replace -p "(.+)" -r '{kv}' -k emu2sintax-header.tsv > sintax_db.fasta
