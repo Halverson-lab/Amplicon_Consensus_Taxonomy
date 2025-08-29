@@ -141,8 +141,7 @@ cat << EOF > EMU_slurm.sh
 #SBATCH --mem=200G  # max memory
 #SBATCH -J "emu"  # job name
 #SBATCH --mail-user=$EMAIL  # email address
-#SBATCH --mail-type=END
-#SBATCH --mail-type=FAIL
+#SBATCH --mail-type=END,FAIL
 #SBATCH --array=$ARRAY_SEQUENCE
 
 
@@ -194,8 +193,7 @@ cat << EOF > Sintax_slurm.sh
 #SBATCH --mem=200G  # max memory
 #SBATCH -J "sintax"  # job name
 #SBATCH --mail-user=$EMAIL  # email address
-#SBATCH --mail-type=END
-#SBATCH --mail-type=FAIL
+#SBATCH --mail-type=END,FAIL
 #SBATCH --array=$ARRAY_SEQUENCE
 
 
@@ -251,8 +249,7 @@ cat << EOF > Sintax_OTU_slurm.sh
 #SBATCH --mem=200G  # max memory
 #SBATCH -J "sintax"  # job name
 #SBATCH --mail-user=$EMAIL  # email address
-#SBATCH --mail-type=END
-#SBATCH --mail-type=FAIL
+#SBATCH --mail-type=END,FAIL
 
 
 cd $LACA_OUT
