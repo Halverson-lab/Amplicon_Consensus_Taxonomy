@@ -59,7 +59,7 @@ done
 source config.txt
 
 [[ -z "$DATABASE_DIR" ]] && { echo "DATABASE_DIR is required" ; exit 1; }
-
+[[ -z "$SIM_THRESH" ]] && { echo "SIM_THRESH is empty, using default of 0.005" ; SIM_THRESH=0.005; }
 
 #check for necessary files if building from provided files
 if [[ $build_flag == "true" ]]; then
@@ -278,7 +278,7 @@ cat database_alignment_stats.csv \
     | csvtk filter2 -f '$QTAXID != $RTAXID' \
     | csvtk mutate2 --after RLENGTH -n MINLENGTH -e '$QLENGTH < $RLENGTH ? $QLENGTH : $RLENGTH' \
     | csvtk mutate2 --after NM -n PERCENTMATCH -e '$NM / $MINLENGTH' -w 5 \
-    | csvtk filter -f "PERCENTMATCH<0.005"  -o database_alignment_failed_reads.csv
+    | csvtk filter -f "PERCENTMATCH<$SIM_THRESH"  -o database_alignment_failed_reads.csv
 
 # take in the failed read alignments and output group notations, updated fasta headers, and updated taxonomy
 identify_minimap_groups.R database_alignment_failed_reads.csv
