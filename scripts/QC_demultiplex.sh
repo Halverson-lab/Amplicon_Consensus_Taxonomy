@@ -70,7 +70,7 @@ cd $WORK_DIR/slurm_scripts
 
 
 ################################################ First round of filtering, pre-demux ################################################
-cat << EOF > 2_2_chopper_1_slurm.sh
+cat << EOF > 2_chopper_1_slurm.sh
 #!/bin/bash
 
 #SBATCH --time=0-4:00:00  # max job runtime
@@ -201,7 +201,7 @@ if [ $MULTI_LENGTH == "FALSE" ]; then
 #SBATCH --cpus-per-task=$QC_THREADS  # number of processor cores
 #SBATCH --nodes=1  # number of nodes
 #SBATCH --mem=200G  # max memory
-#SBATCH -J "chopper_2"  # job name
+#SBATCH -J "4_chopper_2"  # job name
 #SBATCH --mail-user=$EMAIL  # email address
 #SBATCH --mail-type=END
 #SBATCH --mail-type=FAIL
@@ -283,7 +283,7 @@ elif [ $MULTI_LENGTH == "TRUE" ]; then
 #SBATCH --cpus-per-task=$QC_THREADS  # number of processor cores
 #SBATCH --nodes=1  # number of nodes
 #SBATCH --mem=200G  # max memory
-#SBATCH -J "chopper_2"  # job name
+#SBATCH -J "4_chopper_2"  # job name
 #SBATCH --mail-user=$EMAIL  # email address
 #SBATCH --mail-type=END
 #SBATCH --mail-type=FAIL
