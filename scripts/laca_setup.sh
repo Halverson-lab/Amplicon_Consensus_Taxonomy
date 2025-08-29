@@ -27,8 +27,8 @@ while [[ $# -gt 0 ]]; do
       usage
       exit 0
       ;;
-    \?)
-      echo "Invalid option" >&2
+    *)
+      echo "$1 is not recognized" >&2
       usage
       exit 1
       ;;
