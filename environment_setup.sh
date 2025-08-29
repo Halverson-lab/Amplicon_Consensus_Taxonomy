@@ -49,6 +49,10 @@ if [ $CONDA == "conda" ]; then
     [[ ! -e $ENV_DIR/taxonomy-env ]] && { conda env create --prefix ./taxonomy-env -f taxonomy.yaml; }
     [[ ! -e $ENV_DIR/database-env ]] && { conda env create --prefix ./database-env -f database.yaml; }
     [[ ! -e $ENV_DIR/consensus-env ]] && { conda env create --prefix ./consensus-env -f consensus.yaml; }
+
+    #modify emu line 159 to accept non-integer taxids
+    sed -i 's/species_tid = int(ref_name.split/species_tid = str(ref_name.split/g' taxonomy-env/bin/emu
+    sed -i 's/species_tid = int(ref_name.split/species_tid = str(ref_name.split/g' database-env/bin/emu
     
     #prep laca env
     if [ -z "$( ls -A $LACA_DIR )" ]; then
@@ -92,6 +96,10 @@ elif [ $CONDA == "mamba" ]; then
     [[ ! -e $ENV_DIR/taxonomy-env ]] && { mamba env create --prefix ./taxonomy-env -f taxonomy.yaml; }
     [[ ! -e $ENV_DIR/database-env ]] && { mamba env create --prefix ./database-env -f database.yaml; }
     [[ ! -e $ENV_DIR/consensus-env ]] && { mamba env create --prefix ./consensus-env -f consensus.yaml; }
+
+    #modify emu line 159 to accept non-integer taxids
+    sed -i 's/species_tid = int(ref_name.split/species_tid = str(ref_name.split/g' taxonomy-env/bin/emu
+    sed -i 's/species_tid = int(ref_name.split/species_tid = str(ref_name.split/g' database-env/bin/emu
     
     #prep laca env
     if [ -z "$( ls -A $LACA_DIR )" ]; then
@@ -135,6 +143,10 @@ elif [ $CONDA == "micromamba" ]; then
     [[ ! -e $ENV_DIR/taxonomy-env ]] && { micromamba env create --prefix ./taxonomy-env -f taxonomy.yaml; }
     [[ ! -e $ENV_DIR/database-env ]] && { micromamba env create --prefix ./database-env -f database.yaml; }
     [[ ! -e $ENV_DIR/consensus-env ]] && { micromamba env create --prefix ./consensus-env -f consensus.yaml; }
+
+    #modify emu line 159 to accept non-integer taxids
+    sed -i 's/species_tid = int(ref_name.split/species_tid = str(ref_name.split/g' taxonomy-env/bin/emu
+    sed -i 's/species_tid = int(ref_name.split/species_tid = str(ref_name.split/g' database-env/bin/emu
     
     #prep laca env
     if [ -z "$( ls -A $LACA_DIR )" ]; then
