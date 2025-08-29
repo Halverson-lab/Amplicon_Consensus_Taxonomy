@@ -124,8 +124,7 @@ if [[ $slurm_flag == "true" ]]; then
 #SBATCH --mem=200G  # max memory
 #SBATCH -J "generate_consensus_otu_table"  # job name
 #SBATCH --mail-user=$EMAIL  # email address
-#SBATCH --mail-type=END
-#SBATCH --mail-type=FAIL
+#SBATCH --mail-type=END,FAIL
 
 WORK_DIR=$WORK_DIR
 
