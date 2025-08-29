@@ -88,8 +88,7 @@ cat << EOF > laca_file_setup.sh
 #SBATCH --mem=200G  # max memory
 #SBATCH -J "laca_file_setup"  # job name
 #SBATCH --mail-user=$EMAIL  # email address
-#SBATCH --mail-type=END
-#SBATCH --mail-type=FAIL
+#SBATCH --mail-type=END,FAIL
 
 
 cd $LACA_OUT/demultiplexed_reads
@@ -169,8 +168,7 @@ cat << EOF > laca_run.sh
 #SBATCH --mem=$SLURM_MAX_MEM  # max memory
 #SBATCH -J "laca_run"  # job name
 #SBATCH --mail-user=$EMAIL  # email address
-#SBATCH --mail-type=END
-#SBATCH --mail-type=FAIL
+#SBATCH --mail-type=END,FAIL
 
 
 cd $LACA_OUT
