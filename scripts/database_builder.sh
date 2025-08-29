@@ -6,6 +6,7 @@ add_flag=false
 ncbi_flag=false
 build_flag=false
 default_flag=false
+SIM_THRESH=0.005
 
 usage() {
  echo "Usage: $0 [OPTIONS]"
@@ -15,6 +16,7 @@ usage() {
  echo " -d, --default   Build new database from latest NCBI 16S RefSeq and rrnDB"
  echo " -a, --add       Add user provided sequences to database"
  echo " -n, --ncbi      Add sequences to database using list of NCBI accesions"
+ echo " -s, --sim       Set the threshold for grouping similar sequences, default is 0.005"
 }
 
 if [ $# -eq 0 ]; then
@@ -42,12 +44,17 @@ while [[ $# -gt 0 ]]; do
       ncbi_flag=true
       echo "retrieving sequences from NCBI and adding to database" >&2
       ;;
+    -s | --sim)
+      shift
+      SIM_THRESH=$1
+      echo "Setting similarity threshold to $SIM_THRESH" >&2
+      ;;
     -h | --help)
       usage
       exit 0
       ;;
-    \?)
-      echo "Invalid option" >&2
+    *)
+      echo "$1 is not recognized" >&2
       usage
       exit 1
       ;;
@@ -59,7 +66,6 @@ done
 source config.txt
 
 [[ -z "$DATABASE_DIR" ]] && { echo "DATABASE_DIR is required" ; exit 1; }
-[[ -z "$SIM_THRESH" ]] && { echo "SIM_THRESH is empty, using default of 0.005" ; SIM_THRESH=0.005; }
 
 #check for necessary files if building from provided files
 if [[ $build_flag == "true" ]]; then
