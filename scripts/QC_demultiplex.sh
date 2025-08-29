@@ -70,7 +70,7 @@ cd $WORK_DIR/slurm_scripts
 
 
 ################################################ First round of filtering, pre-demux ################################################
-cat << EOF > chopper_1_slurm.sh
+cat << EOF > 2_2_chopper_1_slurm.sh
 #!/bin/bash
 
 #SBATCH --time=0-4:00:00  # max job runtime
@@ -89,17 +89,17 @@ cd $WORK_DIR/2_chopper_1
 EOF
 
 if [ $CONDA == "conda" ]; then
-    echo 'eval "$(conda shell hook --shell bash)"' >> chopper_1_slurm.sh
-    echo "source activate $ENV_DIR/cutadapt-env" >> chopper_1_slurm.sh
+    echo 'eval "$(conda shell hook --shell bash)"' >> 2_chopper_1_slurm.sh
+    echo "source activate $ENV_DIR/cutadapt-env" >> 2_chopper_1_slurm.sh
 elif [ $CONDA == "mamba" ]; then
-    echo 'eval "$(mamba shell hook --shell bash)"' >> chopper_1_slurm.sh
-    echo "mamba activate $ENV_DIR/cutadapt-env" >> chopper_1_slurm.sh
+    echo 'eval "$(mamba shell hook --shell bash)"' >> 2_chopper_1_slurm.sh
+    echo "mamba activate $ENV_DIR/cutadapt-env" >> 2_chopper_1_slurm.sh
 elif [ $CONDA == "micromamba" ]; then
-    echo 'eval "$(micromamba shell hook --shell bash)"' >> chopper_1_slurm.sh
-    echo "micromamba activate $ENV_DIR/cutadapt-env" >> chopper_1_slurm.sh
+    echo 'eval "$(micromamba shell hook --shell bash)"' >> 2_chopper_1_slurm.sh
+    echo "micromamba activate $ENV_DIR/cutadapt-env" >> 2_chopper_1_slurm.sh
 fi
 
-cat << EOF >> chopper_1_slurm.sh
+cat << EOF >> 2_chopper_1_slurm.sh
 
 LOOSE_MIN_LENGTH=$LOOSE_MIN_LENGTH
 LOOSE_MAX_LENGTH=$LOOSE_MAX_LENGTH
@@ -109,8 +109,7 @@ READ_DIR=$WORK_DIR/0_raw_reads
 
 EOF
 
-cat << 'EOF' >> chopper_1_slurm.sh
-
+cat << 'EOF' >> 2_chopper_1_slurm.sh
 
 if gunzip --test $READ_DIR/"${SLURM_ARRAY_TASK_ID}"_* 2>/dev/null 1>/dev/null; then
   gunzip -c $READ_DIR/"${SLURM_ARRAY_TASK_ID}"_* \
@@ -123,12 +122,20 @@ else
     | gzip > "${SLURM_ARRAY_TASK_ID}"_filt.fastq.gz
 fi
 
+EXIT_CODE=$?
+# Log the exit code to a task-specific file
+if [ $EXIT_CODE -ne 0 ]; then
+    echo "Task $SLURM_ARRAY_TASK_ID failed with exit code: $EXIT_CODE" >> 2_chopper_1_slurm.log
+else
+    echo "Task $SLURM_ARRAY_TASK_ID succeeded" >> 2_chopper_1_slurm.log
+fi
+
 EOF
 
 
 
 ################################################ Demultiplex with cutadapt ################################################
-cat << EOF > Demux_slurm.sh
+cat << EOF > 3_Demux_slurm.sh
 #!/bin/bash 
 
 #SBATCH --time=0-${DEMUX_JOB_TIME}:00:00  # max job runtime
@@ -152,18 +159,26 @@ BARCODE_ERROR=$BARCODE_ERROR
 EOF
 
 if [ $CONDA == "conda" ]; then
-    echo 'eval "$(conda shell hook --shell bash)"' >> Demux_slurm.sh
-    echo "source activate $ENV_DIR/cutadapt-env" >> Demux_slurm.sh
+    echo 'eval "$(conda shell hook --shell bash)"' >> 3_Demux_slurm.sh
+    echo "source activate $ENV_DIR/cutadapt-env" >> 3_Demux_slurm.sh
 elif [ $CONDA == "mamba" ]; then
-    echo 'eval "$(mamba shell hook --shell bash)"' >> Demux_slurm.sh
-    echo "mamba activate $ENV_DIR/cutadapt-env" >> Demux_slurm.sh
+    echo 'eval "$(mamba shell hook --shell bash)"' >> 3_Demux_slurm.sh
+    echo "mamba activate $ENV_DIR/cutadapt-env" >> 3_Demux_slurm.sh
 elif [ $CONDA == "micromamba" ]; then
-    echo 'eval "$(micromamba shell hook --shell bash)"' >> Demux_slurm.sh
-    echo "micromamba activate $ENV_DIR/cutadapt-env" >> Demux_slurm.sh
+    echo 'eval "$(micromamba shell hook --shell bash)"' >> 3_Demux_slurm.sh
+    echo "micromamba activate $ENV_DIR/cutadapt-env" >> 3_Demux_slurm.sh
 fi
 
-cat << 'EOF' >> Demux_slurm.sh
+cat << 'EOF' >> 3_Demux_slurm.sh
 cutadapt --revcomp --overlap $BARCODE_OVERLAP -j 16 -e $BARCODE_ERROR -a file:"${BARCODE_FILE}" -o "${SLURM_ARRAY_TASK_ID}"_{name}.fastq.gz $READ_DIR/"${SLURM_ARRAY_TASK_ID}"_filt.fastq.gz
+
+EXIT_CODE=$?
+# Log the exit code to a task-specific file
+if [ $EXIT_CODE -ne 0 ]; then
+    echo "Task $SLURM_ARRAY_TASK_ID failed with exit code: $EXIT_CODE" >> 3_Demux_slurm.log
+else
+    echo "Task $SLURM_ARRAY_TASK_ID succeeded" >> 3_Demux_slurm.log
+fi
 EOF
 
 
@@ -179,7 +194,7 @@ if [ $MULTI_LENGTH == "FALSE" ]; then
     #Convert the barcode sequence into slurm format
     ARRAY_SEQUENCE=$(IFS=,; echo "${BARCODE_SEQUENCE[*]}")
     
-    cat << EOF > chopper_2_slurm.sh
+    cat << EOF > 4_chopper_2_slurm.sh
 #!/bin/bash 
 
 #SBATCH --time=0-${JOB_TIME}:00:00  # max job runtime
@@ -197,17 +212,17 @@ cd $WORK_DIR/4_chopper_2
 EOF
 
     if [ $CONDA == "conda" ]; then
-        echo 'eval "$(conda shell hook --shell bash)"' >> chopper_2_slurm.sh
-        echo "source activate $ENV_DIR/cutadapt-env" >> chopper_2_slurm.sh
+        echo 'eval "$(conda shell hook --shell bash)"' >> 4_chopper_2_slurm.sh
+        echo "source activate $ENV_DIR/cutadapt-env" >> 4_chopper_2_slurm.sh
     elif [ $CONDA == "mamba" ]; then
-        echo 'eval "$(mamba shell hook --shell bash)"' >> chopper_2_slurm.sh
-        echo "mamba activate $ENV_DIR/cutadapt-env" >> chopper_2_slurm.sh
+        echo 'eval "$(mamba shell hook --shell bash)"' >> 4_chopper_2_slurm.sh
+        echo "mamba activate $ENV_DIR/cutadapt-env" >> 4_chopper_2_slurm.sh
     elif [ $CONDA == "micromamba" ]; then
-        echo 'eval "$(micromamba shell hook --shell bash)"' >> chopper_2_slurm.sh
-        echo "micromamba activate $ENV_DIR/cutadapt-env" >> chopper_2_slurm.sh
+        echo 'eval "$(micromamba shell hook --shell bash)"' >> 4_chopper_2_slurm.sh
+        echo "micromamba activate $ENV_DIR/cutadapt-env" >> 4_chopper_2_slurm.sh
     fi
 
-    cat << EOF >> chopper_2_slurm.sh
+    cat << EOF >> 4_chopper_2_slurm.sh
 READ_DIR=$WORK_DIR/3_Demultiplex
 
 STRICT_MIN_LENGTH=$MIN_LENGTH
@@ -216,7 +231,7 @@ STRICT_MIN_Q=$MIN_Q
 
 EOF
 
-    cat << 'EOF' >> chopper_2_slurm.sh
+    cat << 'EOF' >> 4_chopper_2_slurm.sh
 for read in $READ_DIR/*0"${SLURM_ARRAY_TASK_ID}".fastq.gz; do
     if [[ -e $read ]] ; then
         gunzip -c "$read" \
@@ -224,6 +239,14 @@ for read in $READ_DIR/*0"${SLURM_ARRAY_TASK_ID}".fastq.gz; do
             | gzip > $(basename "$read")
     fi
 done
+
+EXIT_CODE=$?
+# Log the exit code to a task-specific file
+if [ $EXIT_CODE -ne 0 ]; then
+    echo "Task $SLURM_ARRAY_TASK_ID failed with exit code: $EXIT_CODE" >> 4_chopper_2_slurm.log
+else
+    echo "Task $SLURM_ARRAY_TASK_ID succeeded" >> 4_chopper_2_slurm.log
+fi
 EOF
 
 # If there are multiple primer sets/lengths then pull those variables from the config file
@@ -287,6 +310,7 @@ READ_DIR=$WORK_DIR/3_Demultiplex
 STRICT_MIN_LENGTH=$MIN_LENGTH
 STRICT_MAX_LENGTH=$MAX_LENGTH
 STRICT_MIN_Q=$MIN_Q
+LOG_FILE=chopper_set"$m"_slurm.log
 
 for n in ${LIB_SEQUENCE[@]};
 EOF
@@ -299,6 +323,14 @@ do
             | gzip > $(basename "$READ_DIR/"$n"_*0"${SLURM_ARRAY_TASK_ID}".fastq.gz")
     fi
 done
+
+EXIT_CODE=$?
+# Log the exit code to a task-specific file
+if [ $EXIT_CODE -ne 0 ]; then
+    echo "Task $SLURM_ARRAY_TASK_ID failed with exit code: $EXIT_CODE" >> $LOG_FILE
+else
+    echo "Task $SLURM_ARRAY_TASK_ID succeeded" >> $LOG_FILE
+fi
 EOF
 
     done
@@ -313,12 +345,12 @@ fi
 
 if [ $MULTI_LENGTH == "TRUE" ]; then
     if [ -z "$( ls -A $WORK_DIR/2_chopper_1 )" ]; then
-        JOBID1=$(sbatch --parsable chopper_1_slurm.sh)
-        JOBID2=$(sbatch --parsable --dependency=afterok:$JOBID1 Demux_slurm.sh)
+        JOBID1=$(sbatch --parsable 2_chopper_1_slurm.sh)
+        JOBID2=$(sbatch --parsable --dependency=afterok:$JOBID1 3_Demux_slurm.sh)
         for m in $(seq 1 $NUM_OF_AMPLICON_SETS); do  sbatch --parsable --dependency=afterok:$JOBID2 chopper_set${m}_slurm.sh ; done
     elif [ -z "$( ls -A $WORK_DIR/3_Demultiplex )" ]; then
-        JOBID2=$(sbatch --parsable Demux_slurm.sh)
-        sbatch --parsable --dependency=afterok:$JOBID2 chopper_2_slurm.sh
+        JOBID2=$(sbatch --parsable 3_Demux_slurm.sh)
+        sbatch --parsable --dependency=afterok:$JOBID2 4_chopper_2_slurm.sh
         for m in $(seq 1 $NUM_OF_AMPLICON_SETS); do  sbatch --parsable --dependency=afterok:$JOBID2 chopper_set${m}_slurm.sh ; done
     elif [ -z "$( ls -A $WORK_DIR/4_chopper_2 )" ]; then
         for m in $(seq 1 $NUM_OF_AMPLICON_SETS); do  sbatch --parsable chopper_set${m}_slurm.sh ; done
@@ -327,14 +359,14 @@ if [ $MULTI_LENGTH == "TRUE" ]; then
     fi
 else
     if [ -z "$( ls -A $WORK_DIR/2_chopper_1 )" ]; then
-        JOBID1=$(sbatch --parsable chopper_1_slurm.sh)
-        JOBID2=$(sbatch --parsable --dependency=afterok:$JOBID1 Demux_slurm.sh)
-        sbatch --parsable --dependency=afterok:$JOBID2 chopper_2_slurm.sh
+        JOBID1=$(sbatch --parsable 2_chopper_1_slurm.sh)
+        JOBID2=$(sbatch --parsable --dependency=afterok:$JOBID1 3_Demux_slurm.sh)
+        sbatch --parsable --dependency=afterok:$JOBID2 4_chopper_2_slurm.sh
     elif [ -z "$( ls -A $WORK_DIR/3_Demultiplex )" ]; then
-        JOBID2=$(sbatch --parsable Demux_slurm.sh)
-        sbatch --parsable --dependency=afterok:$JOBID2 chopper_2_slurm.sh
+        JOBID2=$(sbatch --parsable 3_Demux_slurm.sh)
+        sbatch --parsable --dependency=afterok:$JOBID2 4_chopper_2_slurm.sh
     elif [ -z "$( ls -A $WORK_DIR/4_chopper_2 )" ]; then
-        sbatch --parsable chopper_2_slurm.sh
+        sbatch --parsable 4_chopper_2_slurm.sh
     else
         echo "Folders 2-4 already contain files"
     fi
