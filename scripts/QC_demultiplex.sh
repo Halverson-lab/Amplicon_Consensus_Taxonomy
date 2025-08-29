@@ -79,8 +79,7 @@ cat << EOF > 2_chopper_1_slurm.sh
 #SBATCH --mem=200G  # max memory
 #SBATCH -J "2_chopper_1"  # job name
 #SBATCH --mail-user=$EMAIL  # email address
-#SBATCH --mail-type=END
-#SBATCH --mail-type=FAIL
+#SBATCH --mail-type=END,FAIL
 #SBATCH --array=1-$LIBRARY
 
 WORK_DIR=$WORK_DIR
@@ -144,8 +143,7 @@ cat << EOF > 3_Demux_slurm.sh
 #SBATCH --mem=200G  # max memory
 #SBATCH -J "3_Demux"  # job name
 #SBATCH --mail-user=$EMAIL  # email address
-#SBATCH --mail-type=END
-#SBATCH --mail-type=FAIL
+#SBATCH --mail-type=END,FAIL
 #SBATCH --array=1-$LIBRARY
 
 cd $WORK_DIR/3_Demultiplex
@@ -203,8 +201,7 @@ if [ $MULTI_LENGTH == "FALSE" ]; then
 #SBATCH --mem=200G  # max memory
 #SBATCH -J "4_chopper_2"  # job name
 #SBATCH --mail-user=$EMAIL  # email address
-#SBATCH --mail-type=END
-#SBATCH --mail-type=FAIL
+#SBATCH --mail-type=END,FAIL
 #SBATCH --array=$ARRAY_SEQUENCE
 
 WORK_DIR=$WORK_DIR
@@ -285,8 +282,7 @@ elif [ $MULTI_LENGTH == "TRUE" ]; then
 #SBATCH --mem=200G  # max memory
 #SBATCH -J "4_chopper_2"  # job name
 #SBATCH --mail-user=$EMAIL  # email address
-#SBATCH --mail-type=END
-#SBATCH --mail-type=FAIL
+#SBATCH --mail-type=END,FAIL
 #SBATCH --array=$ARRAY_SEQUENCE
 
 WORK_DIR=$WORK_DIR
