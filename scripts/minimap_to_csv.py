@@ -40,6 +40,7 @@ for alignment in samfile.fetch():
                 'RLENGTH': alignment.reference_length,
                 'AS': AS_tag,
                 'NM': NM_tag,
+                'CMATCH': cigar_stats[0],
                 'CINS': cigar_stats[1],
                 'CDEL': cigar_stats[2],
                 'SOFT_CLIP': cigar_stats[4],
