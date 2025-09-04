@@ -6,7 +6,7 @@ library(gsubfn)
 
 
 raw_emu_header <- read.pattern("name_list.txt", pattern = "^(\\S+) +(.*)$", quote = "")
-taxonomy <- read.csv("taxonomy.tsv", sep = "\t")
+taxonomy <- read.csv("taxonomy.tsv", sep = "\t", , na.strings=c(""))
 
 emu_headers <- raw_emu_header %>%
   separate_wider_delim(V1, ":", names = c("tax_id", "db", "emu_num"))
