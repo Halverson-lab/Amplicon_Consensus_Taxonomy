@@ -324,8 +324,10 @@ if [[ $group_flag == "true" ]]; then
         | csvtk mutate2 --after NM -n PERCENTMATCH -e '$NM / $MINLENGTH' -w 5 \
         | csvtk filter -f "PERCENTMATCH<$SIM_THRESH"  -o database_alignment_failed_reads.csv
 
+    seqkit seq -n -i species_taxid.fasta > seq_id_list.txt
     # take in the failed read alignments and output group notations, updated fasta headers, and updated taxonomy
     minimap_to_group.R database_alignment_failed_reads.csv
+    rm seq_id_list.txt
 
     # add the updated files to the existing db
     mv taxonomy.tsv ./ungrouped_taxonomy.tsv
