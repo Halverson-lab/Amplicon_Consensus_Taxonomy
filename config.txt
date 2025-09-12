@@ -87,10 +87,8 @@ DATABASE_DIR=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases
 # URL of the latest rrnDB
 RRNDB=https://rrndb.umms.med.umich.edu/downloads/rrnDB-5.9_16S_rRNA.fasta.zip
 
-# if providing your own database, DATABASE_DIR should contain sequences.fasta and seq2tax.txt 
-# taxonomy.tsv will be updated using NCBI taxonomy
-
 # Files for adding user provided reads to the current database
+# If using a sintax/UNITE formatted database then only USER_SEQ needs to be provided. 
 # fasta file of sequences to be added
 USER_SEQ=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases/new_seq.fasta
 
@@ -106,6 +104,9 @@ USER_TAX=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases/new_taxids.
 # Will retrieve the annotated 16S genes from the assembled genome
 ACC_LIST=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases/accessions_list.txt
 
+# Similarity threshold for identify if two sequences are too similar to each other for nanopore to differentiate
+# Default threshold is 0.005, so if two reads are >99.5% identical they will be grouped 
+SIM_THRESH=0.005
 ################################### Taxonomy Parameters ###################################
 
 # LACA Parameters
@@ -114,41 +115,34 @@ MAX_JOBS=64 #max LACA will use for one task
 SLURM_MAX_CPUS=128 #Must be greater than MAX_JOBS. Depends on number of reads but more will speed up the slower parts signifcantly
 SLURM_MAX_MEM=500G
 LACA_JOB_TIME=7 #Number of days, (more reads = more time)
-
 # Directory for laca output, if empty then default is $WORK_DIR/5_laca
 LACA_OUT=/path/to/dir/Amplicon_Consensus_Taxonomy/5_laca
 
 # EMU parameters
 EMU_DB=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases
-EMU_THREADS=32
-
 # Directory for emu output, if empty then default is $WORK_DIR/6_emu
 EMU_OUT=/path/to/dir/Amplicon_Consensus_Taxonomy/6_emu
+EMU_THREADS=32
+
 
 # Sintax Parameters
 SINTAX_DB=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases/sintax_db.fasta
-SINTAX_THREADS=32
-
 # Directory for sintax output, if empty then default is $WORK_DIR/7_sintax
 SINTAX_OUT=/path/to/dir/Amplicon_Consensus_Taxonomy/7_sintax
+SINTAX_THREADS=32
 
 
 
 ################################### Generate Consensus Parameters ###################################
+# Does the experiment use known organisms? Answer TRUE or FALSE
+KNOWN_ORG=FALSE
 
-# Are any samples gnotobiotic? If true then prepare a 2 column csv with every barcode and TRUE/FALSE for gnotobiotic
-GNOTO=TRUE
-GNOTO_LIST=/path/to/dir/Amplicon_Consensus_Taxonomy/sample_info/gnotobiotic_sample_info.csv
-
-# Does the experiment use SynComs? Answer TRUE or FALSE
-SYNCOM=TRUE
-
-# If sample includes syncoms the include a tsv of column labeled species, containing species name with taxid of each member of the syncom 
-# species names must match format if genus_species_taxid, for example "Pseudomonas_putida_303"
+# If sample includes known organisms the include a tsv of column labeled species, containing species name with taxid of each member of the syncom 
+# species names must match the format of genus_species_taxid, for example "Pseudomonas_putida_303"
 SYNCOM_SPECIES=/path/to/dir/Amplicon_Consensus_Taxonomy/sample_info/syncom_species_list.tsv
 
 # Assignments with a confidence below this will be set to NA for that level
-NA_THRESHOLD=0.3
+NA_THRESHOLD=0.1
 
-# Assignments above this will favor the sintax output
-SINTAX_THRESHOLD=0.7
+#number of cores to request and use for parallel work in R
+N_CORE=8
