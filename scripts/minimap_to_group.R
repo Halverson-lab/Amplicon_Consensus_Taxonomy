@@ -6,10 +6,11 @@ library(tidyverse)
 library(multidplyr)
 options("scipen"=999)
 
-#### Environment setup ####
-readRenviron("config.txt")
+#script to take in the minimap2 file and identify and label reads where the species can't be differentiated
+args <- commandArgs(trailingOnly = TRUE)
+minimap_stats <- read_csv(args[1])
 
-path_to_work_dir <- Sys.getenv("WORK_DIR")
+#### Environment setup ####
 path_to_data_dir <- Sys.getenv("DATABASE_DIR")
 setwd(path_to_data_dir)
 
@@ -47,10 +48,6 @@ species_counts <- all_seq_ids %>%
   summarize(total_species_seqs = n()) %>%
   filter(!is.na(t_species)) %>%
   column_to_rownames(var = "t_species")
-
-
-#Read in the minimap alignment data
-minimap_stats <- read_csv("database_alignment_failed_reads.csv")
 
 #create a cluster
 cluster <- new_cluster((n_cores-1))
@@ -406,3 +403,4 @@ new_taxonomies <- new_taxonomies %>%
   rename(tax_id=new_taxid)
 
 write_tsv(new_taxonomies, "grouped_taxonomies.tsv")
+
