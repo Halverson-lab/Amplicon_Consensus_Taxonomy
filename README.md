@@ -53,20 +53,25 @@ User can use the provided database or construct their own. If using the provided
 database_builder.sh
 
 # Options:
-#  -h, --help      Display this help message
-#  -b, --build     Build new database
-#  -d, --default   Build new database from latest NCBI 16S RefSeq and rrnDB
-#  -a, --add       Add user provided sequences to database
-#  -n, --ncbi      Add sequences to database using list of NCBI accesions
+# -h, --help      Display this help message
+# -b, --build     Build new database
+# -d, --default   Build new database from latest NCBI 16S RefSeq and rrnDB
+# -g, --group     Group and rename highly similar sequences in the database
+# -s, --sintax    Build new database from a sintax/usearch formatted database
+# -a, --add       Add user provided sequences to database
+# -n, --ncbi      Add sequences to database using list of NCBI accessions
 ```
 
 ### Default database
 
-The default ACT database is built from a combination of NCBI 16S rRNA RefSeq database and the [Ribosomal RNA Database](https://rrndb.umms.med.umich.edu/). This database can be rebuilt using the `-d` or `--default` flags to get the most updated versions. The rrnDB does not have a static link for downloading the latest copy, so users must provide a URL in the config file to the version they want. This URL can be found by going to the [rrnDB download page](https://rrndb.umms.med.umich.edu/downloads/) and copying the link to the latest `rrnDB-*_16S_rRNA.fasta.zip` file.
+The default ACT database is built from a combination of NCBI 16S rRNA RefSeq database and the [Ribosomal RNA Database](https://rrndb.umms.med.umich.edu/). This database can be rebuilt using the `-d` or `--default` flags to get the most updated versions. The rrnDB does not have a static link for downloading the latest copy, so users must provide a URL in the config file to the version they want. This URL can be found by going to the [rrnDB download page](https://rrndb.umms.med.umich.edu/downloads/) and copying the link to the latest `rrnDB-*_16S_rRNA.fasta.zip` file. The default database is also grouped by similarity.
 
 ### Custom database
 
-Users can build a completely custom database using the `-b` or `--build` flags and providing two files 1) `sequences.fasta` containing all the 16S sequences in fasta format and 2) `seq2tax.txt` containing a two-column, headerless, tab-delimited list of sequence IDs and their corresponding taxids. The sequence IDs need to match in both files and the taxids should correspond to NCBI taxids. Sequences that cannot be assigned NCBI taxids should be added separately using the `-a | --add` flags after building the initial database.
+Users can build a completely custom database using the `-b` or `--build` flags and providing two files in the config file 1) USER_SEQ, which contains all the 16S sequences in fasta format and 2) USER_SEQ2TAX, which contains a two-column, headerless, tab-delimited list of sequence IDs and their corresponding taxids. The sequence IDs need to match in both files and the taxids should correspond to NCBI taxids. Sequences that cannot be assigned NCBI taxids should be added separately using the `-a | --add` flags after building the initial database. 
+
+You can also build a database from a [sintax/usearch formatted](https://www.drive5.com/usearch/manual/tax_annot.html) database using the `-s` or `--sintax` flags. The database should be listed under USER_SEQ in the config file.
+Pre-built databases for Silva, GreenGenes2, GTDB can be found here (add link), but are not recommended for these reasons (cite paper). Scripts for how they were generated can be found in X folder.
 
 ### Modifying the existing database
 
@@ -87,11 +92,9 @@ Taxonomy information is only required if adding taxids that do not exist in NCBI
 | 8000001 | Bacteria | Bacteroidota | Flavobacteriia | Flavobacteriales | Weeksellaceae | Chryseobacterium | Chryseobacterium S02 | 2 | 976 | 117743 | 200644 | 2762318 | 59732 | 8000001 |
 | 9000005 | Bacteria | Synthetic | Synthetic | Synthetic | Synthetic | Ec5001 | Ec5001 | 2 | 9000000 | 9000001 | 9000002 | 9000003 | 9000004 | 9000005
 
-### Alternative databases
+### Grouping reads in the database
 
-Support for UNITE to be added for fungus.
-
-Pre-built databases for Silva, GreenGenes2, GTDB can be found here (add link), but are not recommended for these reasons (cite paper). Scripts for how they were generated can be found in X folder.
+Highly similar sequences are problematic for taxonomy assignments, so we added a function for grouping and renaming sequences in a database. Minimap2 is used to perform global pairwise alignments and a similarity threshold (SIM_THRESH) is used to determine if sequences are too similar. The default threshold is 0.005 and represent the minimum difference between sequences, meaning sequences that are more than 99.5% identical will be grouped. This was chosen based on sequencing accuracy, as about halfway between Q20 (99%) and Q30 (99.9%) and can be adjusted to suit your sequencing technology of choice. If the sequences that are grouped are from the same species then they are not renamed. Sequences that are grouped from two or more species are renamed with a new group and name. For example, if a group consists of 2+ _Pseudomonas_ species then they will be renamed at the species level as _Pseudomonas group 1_ while a group that consists of reads from 2+ orders would be named by order, such as _Enterobacterales-Moraxellales group 2_. Reads identified as highly similar to many others are removed, but only if they represent less than 5% of the sequences for that species. This option also outputs a list of the sequences removed (sequences_to_be_removed.csv), a file of which sequences are in each group (seq_id_to_group_list.csv), and a file of which species are in each group (group_to_species_list.csv) for reference.
 
 ## Examining reads and setting quality control parameters.
 
@@ -203,16 +206,9 @@ taxonomy_assignment.sh -a
 
 ## Set up the files you need 
 
-The final OTU table is generated using `generate_consensus_table.R`, but to simplify things there is a shell command `generate_consensus.sh` that simplifies things. If the pipeline has been run to this point then all of the files should be in the proper location and the command will handle everything. You do need to prepare a csv that lists each sample ID (library_barcode 1_HL001) and whether or not it is gnotobiotic (T or F), in the format shown below. This file path should be saved in the config.txt file.
+The final OTU table is generated using `generate_consensus_table.R`, but to simplify things there is a shell command `generate_consensus.sh` that simplifies things. If the pipeline has been run to this point then all of the files should be in the proper location and the command will handle everything. Samples will be named using the library number and the names of the provided barcodes.
 
-```
-barcode,gnotobiotic
-1_HL001,T
-1_HL002,T
-1_HL003,F
-```
-
-If you're using a SynCom then prepare another file that lists the species name with taxid for each member (the names must be in the same format as the Emu database).
+If you inoculated with known organisms then prepare a file that lists the species name with taxid for each member (the names must be in the same format as the Emu database).
 
 ```
 species
