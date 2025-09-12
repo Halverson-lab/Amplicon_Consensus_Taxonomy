@@ -325,7 +325,7 @@ if [[ $group_flag == "true" ]]; then
         | csvtk filter -f "PERCENTMATCH<$SIM_THRESH"  -o database_alignment_failed_reads.csv
 
     # take in the failed read alignments and output group notations, updated fasta headers, and updated taxonomy
-    identify_minimap_groups.R database_alignment_failed_reads.csv
+    minimap_to_group.R database_alignment_failed_reads.csv
 
     # add the updated files to the existing db
     mv taxonomy.tsv ./ungrouped_taxonomy.tsv
