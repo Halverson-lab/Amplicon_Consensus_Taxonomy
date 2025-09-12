@@ -328,8 +328,12 @@ if [[ $group_flag == "true" ]]; then
     identify_minimap_groups.R database_alignment_failed_reads.csv
 
     # add the updated files to the existing db
-    csvtk concat -t taxonomy.tsv grouped_taxonomies.tsv > taxonomy.tsv
-    seqkit replace -p '^(\S+)(.+?)$' -r '{kv}$2' -k grouped-seq-headers.tsv species_taxid.fasta --keep-key > species_taxid.fasta
+    mv taxonomy.tsv ./ungrouped_taxonomy.tsv
+    csvtk concat -t ungrouped_taxonomy.tsv grouped_taxonomies.tsv > taxonomy.tsv
+    mv species_taxid.fasta ./ungrouped_species_taxid.fasta
+    seqkit grep -v -f sequences_to_be_removed.csv ungrouped_species_taxid.fasta -o trimmed_species_taxid.fasta
+    seqkit replace -p '^(\S+)(.+?)$' -r '{kv}$2' -k grouped-seq-headers.tsv trimmed_species_taxid.fasta --keep-key > species_taxid.fasta
+    rm trimmed_species_taxid.fasta
 fi
 
 # make the name list for converting from EMU to Sintax
