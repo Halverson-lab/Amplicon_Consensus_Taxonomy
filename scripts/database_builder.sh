@@ -15,7 +15,7 @@ usage() {
  echo " -h, --help      Display this help message"
  echo " -b, --build     Build new database"
  echo " -d, --default   Build new database from latest NCBI 16S RefSeq and rrnDB"
- echo " -g, --group  Group and rename highly similar sequences in the database"
+ echo " -g, --group     Group and rename highly similar sequences in the database"
  echo " -s, --sintax    Build new database from a sintax/UNITE formatted database"
  echo " -a, --add       Add user provided sequences to database"
  echo " -n, --ncbi      Add sequences to database using list of NCBI accessions"
