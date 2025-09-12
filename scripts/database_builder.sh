@@ -199,42 +199,42 @@ fi
 
 if [[ $sintax_flag == "true" ]]; then
 
-seqkit seq -n $USER_SEQ | csvtk add-header -t -n seqid -o read_taxon_list.tsv
-
-cat read_taxon_list.tsv \
-    | csvtk sep -t -f 1 -s ";" -n seq_id,taxon,tmp \
-    | csvtk cut -t -f 2,3 \
-    | csvtk mutate -t -f taxon -n domain -p "d:(.*)" --na \
-    | csvtk mutate -t -f taxon -n phylum -p "p:(.*)" --na \
-    | csvtk mutate -t -f taxon -n class -p "c:(.*)" --na \
-    | csvtk mutate -t -f taxon -n order -p "o:(.*)" --na \
-    | csvtk mutate -t -f taxon -n family -p "f:(.*)" --na \
-    | csvtk mutate -t -f taxon -n genus -p "g:(.*)" --na \
-    | csvtk mutate -t -f taxon -n species -p "s:(.*)" --na \
-    | csvtk replace -t -f domain -p ",.*" -r "" \
-    | csvtk replace -t -f phylum -p ",.*" -r "" \
-    | csvtk replace -t -f class -p ",.*" -r "" \
-    | csvtk replace -t -f order -p ",.*" -r "" \
-    | csvtk replace -t -f family -p ",.*" -r "" \
-    | csvtk replace -t -f genus -p ",.*" -r "" \
-    | csvtk replace -t -f species -p ",.*" -r "" \
-    | csvtk cut -t -f -2 > taxonomy_for_taxdump.tsv
+    seqkit seq -n $USER_SEQ | csvtk add-header -t -n seqid -o read_taxon_list.tsv
     
-taxonkit create-taxdump -A 1 taxonomy_for_taxdump.tsv --out-dir taxdump
-
-rm read_taxon_list.tsv taxonomy_for_taxdump.tsv
-
-#tell taxonkit where to find the new taxdump files
-export TAXONKIT_DB=taxdump/
-
-#cp the taxid.map to make it easier to find
-cp taxdump/taxid.map ./seq2tax_map.txt
-
-csvtk cut -t -f 2 seq2tax_map.txt \
-    | taxonkit lineage \
-    | taxonkit reformat -t -f "{k}\t{p}\t{c}\t{o}\t{f}\t{g}\t{s}" \
-    | csvtk cut -t -f -2 \
-    | csvtk add-header -t -n taxid,domain,phylum,class,order,family,genus,species,t_domain,t_phylum,t_class,t_order,t_family,t_genus,t_species -o taxonomy.tsv
+    cat read_taxon_list.tsv \
+        | csvtk sep -t -f 1 -s ";" -n seq_id,taxon,tmp \
+        | csvtk cut -t -f 2,3 \
+        | csvtk mutate -t -f taxon -n domain -p "d:(.*)" --na \
+        | csvtk mutate -t -f taxon -n phylum -p "p:(.*)" --na \
+        | csvtk mutate -t -f taxon -n class -p "c:(.*)" --na \
+        | csvtk mutate -t -f taxon -n order -p "o:(.*)" --na \
+        | csvtk mutate -t -f taxon -n family -p "f:(.*)" --na \
+        | csvtk mutate -t -f taxon -n genus -p "g:(.*)" --na \
+        | csvtk mutate -t -f taxon -n species -p "s:(.*)" --na \
+        | csvtk replace -t -f domain -p ",.*" -r "" \
+        | csvtk replace -t -f phylum -p ",.*" -r "" \
+        | csvtk replace -t -f class -p ",.*" -r "" \
+        | csvtk replace -t -f order -p ",.*" -r "" \
+        | csvtk replace -t -f family -p ",.*" -r "" \
+        | csvtk replace -t -f genus -p ",.*" -r "" \
+        | csvtk replace -t -f species -p ",.*" -r "" \
+        | csvtk cut -t -f -2 > taxonomy_for_taxdump.tsv
+        
+    taxonkit create-taxdump -A 1 taxonomy_for_taxdump.tsv --out-dir taxdump
+    
+    rm read_taxon_list.tsv taxonomy_for_taxdump.tsv
+    
+    #tell taxonkit where to find the new taxdump files
+    export TAXONKIT_DB=taxdump/
+    
+    #cp the taxid.map to make it easier to find
+    cp taxdump/taxid.map ./seq2tax_map.txt
+    
+    csvtk cut -t -f 2 seq2tax_map.txt \
+        | taxonkit lineage \
+        | taxonkit reformat -t -f "{k}\t{p}\t{c}\t{o}\t{f}\t{g}\t{s}" \
+        | csvtk cut -t -f -2 \
+        | csvtk add-header -t -n taxid,domain,phylum,class,order,family,genus,species,t_domain,t_phylum,t_class,t_order,t_family,t_genus,t_species -o taxonomy.tsv
 
 fi
 
