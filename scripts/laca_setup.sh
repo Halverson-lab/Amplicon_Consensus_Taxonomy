@@ -113,10 +113,14 @@ fi
 
 cat << 'EOF' >> laca_file_setup.sh
 
+
+
 for i in $(seq 1 $LIBRARY);
 do
     for b in "${BARCODES[@]}";
         do
+        READ=$WORK_DIR/4_chopper_2/"$i"_*0"$b".fastq.gz
+        if [[ -e $READ ]] ; then
             #go to folder
             cd $LACA_OUT/demultiplexed_reads
             
@@ -131,7 +135,7 @@ do
             
             # unzip the reads
             cd sample"${SAMPLE}" && gunzip sample"${SAMPLE}".fastq.gz
-            
+        fi
         done
 done
 
