@@ -119,7 +119,8 @@ if [[ $default_flag  == "true" ]]; then
     #build with latest NCBI RefSeq and the rrnDB
 
     #download database
-    mkdir blast_16S_DB && cd blast_16S_DB 
+    mkdir blast_16S_DB 
+    cd blast_16S_DB 
     update_blastdb.pl --decompress 16S_ribosomal_RNA
     #retrieve fasta
     blastdbcmd -entry all -db 16S_ribosomal_RNA -out ../ncbi_16S.fasta
