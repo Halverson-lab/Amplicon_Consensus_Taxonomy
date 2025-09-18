@@ -119,12 +119,12 @@ if [[ $default_flag  == "true" ]]; then
     #build with latest NCBI RefSeq and the rrnDB
 
     #download database
-    mkdir blast_16S_DB 
+    [[ ! -e blast_16S_DB ]] && { mkdir blast_16S_DB ; } 
     cd blast_16S_DB 
     update_blastdb.pl --decompress 16S_ribosomal_RNA
     #retrieve fasta
     blastdbcmd -entry all -db 16S_ribosomal_RNA -out ../ncbi_16S.fasta
-    cd ../
+    cd $DATABASE_DIR
 
     #if the fasta file was not provided then download a new one with the provided URL
     if [[ ! -e $DATABASE_DIR/rrnDB.fasta ]]; then
