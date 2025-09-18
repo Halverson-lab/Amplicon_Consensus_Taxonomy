@@ -308,7 +308,7 @@ if [[ $group_flag == "true" ]]; then
     seqkit seq -i species_taxid.fasta > abbrev_species_taxid.fasta
 
     # minimap all against all and remove the abbreviated name file once done
-    minimap2 -ax lr:hq -t $THREADS -K 500M -N 50 abbrev_species_taxid.fasta abbrev_species_taxid.fasta -o database_alignment.sam
+    minimap2 -ax lr:hq -t $QC_THREADS -K 500M -N 50 abbrev_species_taxid.fasta abbrev_species_taxid.fasta -o database_alignment.sam
     rm abbrev_species_taxid.fasta
 
     #script to convert the sam file into a csv containing the relevant info
