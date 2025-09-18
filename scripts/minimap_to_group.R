@@ -1,5 +1,4 @@
 #!/usr/bin/env Rscript
-#grouped database v2
 
 library(readr)
 library(tidyverse)
