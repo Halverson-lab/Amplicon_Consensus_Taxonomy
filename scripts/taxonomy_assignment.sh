@@ -136,7 +136,7 @@ JOB_TIME=$(($LIBRARY * 3))
 ARRAY_SEQUENCE=$(IFS=,; echo "${BARCODE_SEQUENCE[*]}")
 
 ################################################ EMU ################################################
-cat << EOF > EMU_slurm.sh
+cat << EOF > 6_emu_slurm.sh
 #!/bin/bash 
 
 #SBATCH --time=0-$JOB_TIME:00:00  # max job runtime
@@ -168,7 +168,7 @@ elif [ $CONDA == "micromamba" ]; then
     echo "micromamba activate $ENV_DIR/taxonomy-env" >> EMU_slurm.sh
 fi
 
-cat << 'EOF' >> EMU_slurm.sh
+cat << 'EOF' >> 6_emu_slurm.sh
 for read in  $READ_DIR/*0"${SLURM_ARRAY_TASK_ID}".fastq.gz; do
     if [[ -e $read ]] ; then
         emu abundance --type lr:hq \
@@ -192,7 +192,7 @@ EOF
 
 
 ################################################ Sintax samples ################################################
-cat << EOF > Sintax_slurm.sh
+cat << EOF > 7_sintax_slurm.sh
 #!/bin/bash 
 
 #SBATCH --time=0-$JOB_TIME:00:00  # max job runtime
@@ -225,7 +225,7 @@ elif [ $CONDA == "micromamba" ]; then
 fi
 
 
-cat << 'EOF' >> Sintax_slurm.sh
+cat << 'EOF' >> 7_sintax_slurm.sh
 for read in  $READ_DIR/*0"${SLURM_ARRAY_TASK_ID}".fastq.gz; do
     #get number of reads
     READ_COUNT=$(seqkit stats $read -T | csvtk -t cut -f 4 | csvtk del-header)
@@ -247,7 +247,7 @@ EOF
 
 ################################################ Sintax OTUs ################################################
 
-cat << EOF > Sintax_OTU_slurm.sh
+cat << EOF > 7_sintax_OTU_slurm.sh
 #!/bin/bash 
 
 #SBATCH --time=0-$JOB_TIME:00:00  # max job runtime
@@ -277,7 +277,7 @@ elif [ $CONDA == "micromamba" ]; then
 fi
 
 
-cat << 'EOF' >> Sintax_OTU_slurm.sh
+cat << 'EOF' >> 7_sintax_OTU_slurm.sh
 vsearch --sintax \
     $READ_DIR/rep_seqs.fasta \
     --db $SINTAX_DB \
@@ -293,16 +293,16 @@ EOF
 ################################################ submit slurm scripts ################################################
 
 if [[ $emu_flag == "true" ]]; then
-    sbatch EMU_slurm.sh
+    sbatch 6_emu_slurm.sh
 fi
 
 if [[ $sintax_flag == "true" ]]; then
-    sbatch Sintax_slurm.sh
+    sbatch 7_sintax_slurm.sh
 fi
 
 if [[ $otu_flag == "true" ]]; then
     if [[ -f $LACA_OUT/rep_seqs.fasta ]]; then
-        sbatch Sintax_OTU_slurm.sh
+        sbatch 7_sintax_OTU_slurm.sh
     else
         echo "Cannot classify OTUs because LACA rep_seqs.fasta does not exist." >&2
         echo "Please make sure LACA has finished running before using -a or -o." >&2
