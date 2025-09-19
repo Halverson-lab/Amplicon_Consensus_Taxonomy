@@ -79,7 +79,7 @@ fi
 
 cd $WORK_DIR/slurm_scripts
 
-cat << EOF > laca_file_setup.sh
+cat << EOF > 5_1_laca_file_setup.sh
 #!/bin/bash 
 
 #SBATCH --time=1-0:00:00  # max job runtime
@@ -111,7 +111,7 @@ elif [ $CONDA == "micromamba" ]; then
     echo 'micromamba activate laca' >> laca_file_setup.sh
 fi
 
-cat << 'EOF' >> laca_file_setup.sh
+cat << 'EOF' >> 5_1_laca_file_setup.sh
 
 
 
@@ -142,7 +142,7 @@ done
 EOF
 
 if [[ $run_flag == "true" ]]; then
-    sbatch laca_file_setup.sh
+    sbatch 5_1_laca_file_setup.sh
 fi
 
 
@@ -163,7 +163,7 @@ laca init --dbdir $LACA_DIR \
 
 cd $WORK_DIR/slurm_scripts
 
-cat << EOF > laca_run.sh
+cat << EOF > 5_2_laca_run.sh
 #!/bin/bash 
 
 #SBATCH --time=$LACA_JOB_TIME-0:00:00  # max job runtime
@@ -189,7 +189,7 @@ elif [ $CONDA == "micromamba" ]; then
     echo 'micromamba activate laca' >> laca_run.sh
 fi
 
-cat << EOF >> laca_run.sh
+cat << EOF >> 5_2_laca_run.sh
 
 
 laca run all -j $SLURM_MAX_CPUS
