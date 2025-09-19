@@ -7,13 +7,14 @@ options("scipen"=999)
 
 #script to take in the minimap2 file and identify and label reads where the species can't be differentiated
 args <- commandArgs(trailingOnly = TRUE)
-minimap_stats <- read_csv(args[1])
+readRenviron(args[1])
+minimap_stats <- read_csv(args[2])
 
 #### Environment setup ####
 path_to_data_dir <- Sys.getenv("DATABASE_DIR")
 setwd(path_to_data_dir)
 
-n_cores <- as.numeric(Sys.getenv("N_CORE"))
+n_cores <- Sys.getenv("N_CORE")
 
 #read in taxonomy info since samtools can't handle full headers
 taxonomy <- read_tsv("taxonomy.tsv", col_types = cols(.default = "c")) %>%
@@ -33,7 +34,7 @@ no_tax_reads <- taxonomy %>%
 no_tax_read_list <- append(no_tax_reads$tax_id, no_tax_reads$t_species)
 
 #get a count of how many reads are in the database for each species
-raw_seq_ids <- read_csv("seq_id_list.txt", col_names = F)
+raw_seq_ids <- read_csv(paste0(path_to_data_dir, "seq_id_list.txt"), col_names = F)
 
 all_seq_ids <- raw_seq_ids %>%
   separate_wider_delim(X1, delim = ":", names = c("tax_id", "db", "seqid")) %>%
@@ -49,7 +50,7 @@ species_counts <- all_seq_ids %>%
   column_to_rownames(var = "t_species")
 
 #create a cluster
-cluster <- new_cluster((n_cores-1))
+cluster <- new_cluster(as.integer(n_cores)-1)
 #pass tidyverse and the emu_taxid_taxonomy table to every cluster
 cluster_library(cluster, "tidyverse")
 cluster_assign(cluster, taxonomy_w_rownames = taxonomy_w_rownames)
@@ -288,18 +289,28 @@ seqs2remove <- bad_reads %>%
   select(name) %>%
   rbind(group_outliers_removed)
 
-write.table(seqs2remove, "sequences_to_be_removed.csv", append = FALSE, sep = ",", dec = ".",
+write.table(seqs2remove, paste0(path_to_data_dir, "sequences_to_be_removed.csv"), append = FALSE, sep = ",", dec = ".",
             row.names = F, col.names = F, quote = FALSE)
+
+# function to convert to large number
+trailing_zeros <- function(old_tax){
+  taxid <- as.integer(old_tax)
+  n_digits <- floor(log10(taxid)) + 1
+  new_num <- (taxid * 10^(14 - n_digits))
+  return(new_num)
+}
+
 
 #tsv for changing taxids
 old2newIds <- read_list_with_new_group_name %>%
-  mutate(new_taxid = paste0(taxid, "m", str_extract(group, "[0-9]*?$")),
+  mutate(group_num = as.integer(str_extract(group, "[0-9]*?$")),
+         new_taxid = as.character(trailing_zeros(taxid) + group_num),
          new_id = seq_id) %>%
   separate_wider_delim(new_id, ":", names = c("old_tax", "new_db", "new_seq")) %>%
   unite("new_id", c(new_taxid, new_db, new_seq), sep = ":" ) %>%
   select(c(seq_id, new_id))
 
-write_tsv(old2newIds, "grouped-seq-headers.tsv", col_name = FALSE, escape = "none")
+write_tsv(old2newIds, paste0(path_to_data_dir, "grouped-seq-headers.tsv"), col_name = FALSE, escape = "none")
 
 #### human readable table of who is in which groups ####
 
@@ -308,7 +319,7 @@ seq_id_group <- read_list_with_new_group_name %>%
   select(c(seq_id, species, group, group_name)) %>%
   arrange(group, species)
 
-write_csv(seq_id_group, "seq_id_to_group_list.csv")
+write_csv(seq_id_group, paste0(path_to_data_dir, "seq_id_to_group_list.csv"))
 
 #groups with species
 group_to_species <- read_list_with_new_group_name %>%
@@ -316,16 +327,17 @@ group_to_species <- read_list_with_new_group_name %>%
   distinct() %>%
   arrange(species, group)
 
-write_csv(group_to_species, "group_to_species_list.csv")
+write_csv(group_to_species, paste0(path_to_data_dir, "group_to_species_list.csv"))
 
 
 #### new taxonomies ####
 #taxonomies to append to file
 new_taxonomies <- read_list_with_new_group_name %>%
-  mutate(new_taxid = paste0(taxid, "m", str_extract(group, "[0-9]*?$"))) %>%
+  mutate(group_num = as.integer(str_extract(group, "[0-9]*?$")),
+         new_taxid = as.character(trailing_zeros(taxid) + group_num)) %>%
   select(c(taxid, domain, phylum, class, order, family, genus, species,
            t_domain, t_phylum, t_class, t_order, t_family, t_genus, t_species,
-           new_taxid, group, group_level, group_name, info_group_name)) %>%
+           new_taxid, group, group_level, group_name, group_num, info_group_name)) %>%
   mutate(across(domain:species, ~ na_if(. , ""))) %>%
   distinct() 
 
@@ -336,14 +348,14 @@ for(n in 1:nrow(new_taxonomies)){
     if(is.na(new_taxonomies$t_genus[n])){
       new_taxonomies$t_species[n] <- new_taxonomies$new_taxid[n]
     } else {
-      new_taxonomies$t_species[n] <- paste0(new_taxonomies$t_genus[n],"m",str_extract(new_taxonomies[[n, "group"]], "[0-9]*?$"))
+      new_taxonomies$t_species[n] <- as.character(trailing_zeros(new_taxonomies$t_genus[n]) + new_taxonomies[[n, "group_num"]])
     }
   } else if (new_taxonomies[[n, "group_level"]] == "g"){
     new_taxonomies$genus[n] <- paste(new_taxonomies[[n, "group"]], new_taxonomies[[n, "group_name"]], "sp", sep = "_")
     if(is.na(new_taxonomies$t_family[n])){
       new_taxonomies$t_genus[n] <- new_taxonomies$new_taxid[n]
     } else {
-      new_taxonomies$t_genus[n] <- paste0(new_taxonomies$t_family[n],"m", str_extract(new_taxonomies[[n, "group"]], "[0-9]*?$"))
+      new_taxonomies$t_genus[n] <- as.character(trailing_zeros(new_taxonomies$t_family[n]) + new_taxonomies[[n, "group_num"]])
     }
     for (taxa in c("species")) {
       new_taxonomies[[n, taxa]] <- NA
@@ -354,7 +366,7 @@ for(n in 1:nrow(new_taxonomies)){
     if(is.na(new_taxonomies$t_order[n])){
       new_taxonomies$t_family[n] <- new_taxonomies$new_taxid[n]
     } else {
-      new_taxonomies$t_family[n] <- paste0(new_taxonomies$t_order[n],"m", str_extract(new_taxonomies[[n, "group"]], "[0-9]*?$"))
+      new_taxonomies$t_family[n] <- as.character(trailing_zeros(new_taxonomies$t_order[n]) + new_taxonomies[[n, "group_num"]])
     }
     for (taxa in c("genus", "species")) {
       new_taxonomies[[n, taxa]] <- NA
@@ -365,7 +377,7 @@ for(n in 1:nrow(new_taxonomies)){
     if(is.na(new_taxonomies$t_class[n])){
       new_taxonomies$t_order[n] <- new_taxonomies$new_taxid[n]
     } else {
-      new_taxonomies$t_order[n] <- paste0(new_taxonomies$t_class[n],"m", str_extract(new_taxonomies[[n, "group"]], "[0-9]*?$"))
+      new_taxonomies$t_order[n] <- as.character(trailing_zeros(new_taxonomies$t_class[n]) + new_taxonomies[[n, "group_num"]])
     }
     for (taxa in c("family","genus", "species")) {
       new_taxonomies[[n, taxa]] <- NA
@@ -376,7 +388,7 @@ for(n in 1:nrow(new_taxonomies)){
     if(is.na(new_taxonomies$t_phylum[n])){
       new_taxonomies$t_class[n] <- new_taxonomies$new_taxid[n]
     } else {
-      new_taxonomies$t_class[n] <- paste0(new_taxonomies$t_phylum[n],"m", str_extract(new_taxonomies[[n, "group"]], "[0-9]*?$"))
+      new_taxonomies$t_class[n] <- as.character(trailing_zeros(new_taxonomies$t_phylum[n]) + new_taxonomies[[n, "group_num"]])
     }
     for (taxa in c("order", "family","genus", "species")) {
       new_taxonomies[[n, taxa]] <- NA
@@ -387,7 +399,7 @@ for(n in 1:nrow(new_taxonomies)){
     if(is.na(new_taxonomies$t_domain[n])){
       new_taxonomies$t_phylum[n] <- new_taxonomies$new_taxid[n]
     } else {
-      new_taxonomies$t_phylum[n] <- paste0(new_taxonomies$t_domain[n],"m", str_extract(new_taxonomies[[n, "group"]], "[0-9]*?$"))
+      new_taxonomies$t_phylum[n] <- as.character(trailing_zeros(new_taxonomies$t_domain[n]) + new_taxonomies[[n, "group_num"]])
     }
     for (taxa in c("class", "order", "family","genus", "species")) {
       new_taxonomies[[n, taxa]] <- NA
@@ -401,5 +413,4 @@ new_taxonomies <- new_taxonomies %>%
            t_domain, t_phylum, t_class, t_order, t_family, t_genus, t_species)) %>%
   rename(tax_id=new_taxid)
 
-write_tsv(new_taxonomies, "grouped_taxonomies.tsv")
-
+write_tsv(new_taxonomies, paste0(path_to_data_dir, "grouped_taxonomies.tsv"))
