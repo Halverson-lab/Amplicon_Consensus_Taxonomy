@@ -4,8 +4,12 @@ IMPORTANT! This pipeline should be run on one gene at a time. Reads should be al
 
 Make sure you have some version of conda installed. The pipeline can be run with conda, mamba, or micromamba.
 
-The majority of these scripts are written to produce and run slurm batch scripts. All scripts will be generated in the `slurm_scripts` folder. Most of them will submit the scripts for you, unless otherwise specified. Some commands also have an option to allow you to run the command in your current session.
-
+The majority of these scripts are written to produce and run slurm batch scripts. All scripts will be generated in the `slurm_scripts` folder. Most of them will submit the scripts for you, unless otherwise specified. Some commands also have an option to allow you to run the command in your current session. The slurm scripts are set to notify users when the job finishes or fails via the provided email. If a job array exits with a mixed signal the following command can be used to identify which numbers in the array failed.
+```bash
+# replace $JOBID with the relevent slurm job id
+# the first command prints the job and status, the second removes any marked as completed 
+sacct -X -j $JOBID -o jobid%20,state%20 | grep -v COMPLETED
+```
 ## Files needed
 
 First set up the environment by cloning the github repository into your working directory, i.e. `/work/user`.
