@@ -328,8 +328,8 @@ if [[ $group_flag == "true" ]]; then
         | csvtk filter -f "PERCENTMATCH<$SIM_THRESH"  -o database_alignment_failed_reads.csv
 
     seqkit seq -n -i species_taxid.fasta > seq_id_list.txt
-    # take in the failed read alignments and output group notations, updated fasta headers, and updated taxonomy
-    minimap_to_group.R database_alignment_failed_reads.csv
+    # take in the config file and failed read alignments and output group notations, updated fasta headers, and updated taxonomy
+    minimap_to_group.R $WORK_DIR/config.txt database_alignment_failed_reads.csv
     rm seq_id_list.txt
 
     # add the updated files to the existing db
