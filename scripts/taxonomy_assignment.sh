@@ -173,6 +173,7 @@ for read in  $READ_DIR/*0"${SLURM_ARRAY_TASK_ID}".fastq.gz; do
     if [[ -e $read ]] ; then
         emu abundance --type lr:hq \
             --keep-counts \
+            --keep-files \
             --keep-read-assignments \
             --output-unclassified \
             --threads ${THREADS} \
