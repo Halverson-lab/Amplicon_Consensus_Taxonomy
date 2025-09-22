@@ -11,37 +11,24 @@ source config.txt
 [[ -z "$LIBRARY" ]] && { echo "LIBRARY is empty" ; exit 1; }
 [[ -z "$BARCODES" ]] && { echo "BARCODES is empty" ; exit 1; }
 
+
 if [[ -z "$NA_THRESHOLD" ]]; then
     echo "NA_THRESHOLD is empty, using default of 0.3" 
     NA_THRESHOLD=0.3
     sed -i 's/NA_THRESHOLD=/NA_THRESHOLD=0.3/g' config.txt
-elif (( NA_THRESHOLD < 0 )); then
+elif echo "$NA_THRESHOLD" | awk '{exit !($1 < 0)}'; then
     echo "NA_THRESHOLD must be greater than 0" 
     exit 1
-elif (( NA_THRESHOLD > 1 )); then 
+elif echo "$NA_THRESHOLD" | awk '{exit !($1 > 1)}'; then 
     echo "NA_THRESHOLD must be less than 1" 
     exit 1
 fi
 
-if [[ -z "$SINTAX_THRESHOLD" ]]; then
-    echo "SINTAX_THRESHOLD is empty, using default of 0.7" 
-    SINTAX_THRESHOLD=0.7
-    sed -i 's/SINTAX_THRESHOLD=/SINTAX_THRESHOLD=0.7/g' config.txt
-elif (( SINTAX_THRESHOLD < 0 )); then
-    echo "SINTAX_THRESHOLD must be greater than 0" 
-    exit 1
-elif (( SINTAX_THRESHOLD > 1 )); then 
-    echo "SINTAX_THRESHOLD must be less than 1" 
-    exit 1
-elif (( NA_THRESHOLD > SINTAX_THRESHOLD )); then
-    echo "NA_THRESHOLD cannot be greater than SINTAX_THRESHOLD"
-    exit 1;
-fi
 
 [[ -z "$(ls -A $EMU_OUT/read_assignments/)" ]] && { echo "${EMU_OUT}/read_assignments/ is empty"; exit 1; }
 [[ -z "$(ls -A $SINTAX_OUT)" ]] && { echo "${SINTAX_OUT} is empty"; exit 1; }
 [[ ! -e $LACA_OUT/quant/seqID_to_otu.tsv ]] && { echo "${LACA_OUT}/quant/seqID_to_otu.tsv does not exist"; exit 1; }
-[[ ! -e $LACA_OUT/sintax_OTUs.tsv ]] && { echo "${LACA_OUT}/OTU_sintax.tsv does not exist"; exit 1; }
+[[ ! -e $LACA_OUT/OTU_sintax.tsv ]] && { echo "${LACA_OUT}/OTU_sintax.tsv does not exist"; exit 1; }
 
 
 run_flag=false
