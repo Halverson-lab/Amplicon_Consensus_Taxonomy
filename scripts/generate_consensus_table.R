@@ -51,7 +51,7 @@ laca_path <- Sys.getenv("LACA_OUT")
 otu_df <- read_tsv(paste0(laca_path, "/quant/seqID_to_otu.tsv"))
 
 # Read in the taxonomy assignments for the otus
-otu_taxonomy_df <- read_tsv(paste0(sintax_path, "/OTU_sintax.tsv"), col_names = FALSE)
+otu_taxonomy_df <- read_tsv(paste0(laca_path, "/OTU_sintax.tsv"), col_names = FALSE)
 
 # Read in EMU's taxonomy table for reference
 raw_taxon_table <- read_tsv(paste0(path_to_data_dir,"/taxonomy.tsv"), col_types = cols(.default = "c"))
