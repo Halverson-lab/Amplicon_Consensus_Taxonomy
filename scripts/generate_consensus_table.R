@@ -10,8 +10,10 @@ readRenviron("config.txt")
 
 path_to_work_dir <- Sys.getenv("WORK_DIR")
 setwd(path_to_work_dir)
+if (!str_ends(path_to_work_dir, "/")){ path_to_work_dir <- paste0(path_to_work_dir, "/")}
 
 path_to_data_dir <- Sys.getenv("DATABASE_DIR")
+if (!str_ends(path_to_data_dir, "/")){ path_to_data_dir <- paste0(path_to_data_dir, "/")}
 
 NA_thresh <- Sys.getenv("NA_THRESHOLD")
 
@@ -20,7 +22,7 @@ n_cores <- as.numeric(Sys.getenv("N_CORE"))
 #Number of libraries
 lib_num <- Sys.getenv("LIBRARY")
 #list of names of all barcodes
-barcode_list <- scan(paste0(path_to_work_dir,"/barcode_names.txt"), what="", sep="\n")
+barcode_list <- scan(paste0(path_to_work_dir,"barcode_names.txt"), what="", sep="\n")
 
 contains_known_orgs <- Sys.getenv("KNOWN_ORG")
 
@@ -47,14 +49,19 @@ emu_path <- Sys.getenv("EMU_OUT")
 sintax_path <- Sys.getenv("SINTAX_OUT")
 laca_path <- Sys.getenv("LACA_OUT")
 
+if (!str_ends(emu_path, "/")){ emu_path <- paste0(emu_path, "/")}
+if (!str_ends(sintax_path, "/")){ sintax_path <- paste0(sintax_path, "/")}
+if (!str_ends(laca_path, "/")){ laca_path <- paste0(laca_path, "/")}
+
+
 # Read in the seqID to OTU table you generated
-otu_df <- read_tsv(paste0(laca_path, "/quant/seqID_to_otu.tsv"))
+otu_df <- read_tsv(paste0(laca_path, "quant/seqID_to_otu.tsv"))
 
 # Read in the taxonomy assignments for the otus
-otu_taxonomy_df <- read_tsv(paste0(laca_path, "/OTU_sintax.tsv"), col_names = FALSE)
+otu_taxonomy_df <- read_tsv(paste0(laca_path, "OTU_sintax.tsv"), col_names = FALSE)
 
 # Read in EMU's taxonomy table for reference
-raw_taxon_table <- read_tsv(paste0(path_to_data_dir,"/taxonomy.tsv"), col_types = cols(.default = "c"))
+raw_taxon_table <- read_tsv(paste0(path_to_data_dir,"taxonomy.tsv"), col_types = cols(.default = "c"))
 
 
 
