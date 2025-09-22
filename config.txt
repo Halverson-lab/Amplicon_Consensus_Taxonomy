@@ -139,7 +139,8 @@ KNOWN_ORG=FALSE
 
 # If sample includes known organisms the include a tsv of column labeled species, containing species name with taxid of each member of the syncom 
 # species names must match the format of genus_species_taxid, for example "Pseudomonas_putida_303"
-KNOWN_ORG_SPECIES=/path/to/dir/Amplicon_Consensus_Taxonomy/sample_info/syncom_species_list.tsv
+KNOWN_ORG_SPECIES=/path/to/dir/Amplicon_Consensus_Taxonomy/sample_info/known_org_species_list.tsv
+KNOWN_ORG_SAMPLES=/path/to/dir/Amplicon_Consensus_Taxonomy/sample_info/known_org_sample_list.tsv
 
 # Assignments with a confidence below this will be set to NA for that level
 NA_THRESHOLD=0.1
