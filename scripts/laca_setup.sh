@@ -91,7 +91,7 @@ cat << EOF > 5_laca_file_setup.sh
 #SBATCH --mail-type=END,FAIL
 
 
-cd $LACA_OUT/demultiplexed_reads
+cd $WORK_DIR/4_chopper_2
 
 WORK_DIR=$WORK_DIR
 LACA_OUT=$LACA_OUT
@@ -100,43 +100,30 @@ BARCODES=(${BARCODE_SEQUENCE[@]})
 
 EOF
 
-if [ $CONDA == "conda" ]; then
-    echo 'eval "$(conda shell hook --shell bash)"' >> laca_file_setup.sh
-    echo 'source activate laca' >> laca_file_setup.sh
-elif [ $CONDA == "mamba" ]; then
-    echo 'eval "$(mamba shell hook --shell bash)"' >> laca_file_setup.sh
-    echo 'mamba activate laca' >> laca_file_setup.sh
-elif [ $CONDA == "micromamba" ]; then
-    echo 'eval "$(micromamba shell hook --shell bash)"' >> laca_file_setup.sh
-    echo 'micromamba activate laca' >> laca_file_setup.sh
-fi
-
 cat << 'EOF' >> 5_laca_file_setup.sh
-
-
 
 for i in $(seq 1 $LIBRARY);
 do
     for b in "${BARCODES[@]}";
         do
-        READ=$WORK_DIR/4_chopper_2/"$i"_*0"$b".fastq.gz
-        if [[ -e $READ ]] ; then
-            #go to folder
-            cd $LACA_OUT/demultiplexed_reads
-            
+        pattern="^${i}_.*0${b}\.fastq\.gz$"
+        for READ in * ; do
+          if [[ -f "$READ" && "$READ" =~ $pattern ]]; then
             # New sample names
             SAMPLE=$((i * 100 + b))
             
             # new folder for each sample
-            mkdir sample"${SAMPLE}"
-            
+            mkdir $LACA_OUT/demultiplexed_reads/sample"${SAMPLE}"
+
             # copy the filtered reads into the new folder and rename them
-            cp $WORK_DIR/4_chopper_2/"$i"_*0"$b".fastq.gz sample"${SAMPLE}"/sample"${SAMPLE}".fastq.gz
-            
+            cp $READ $LACA_OUT/demultiplexed_reads/sample"${SAMPLE}"/sample"${SAMPLE}".fastq.gz
+
             # unzip the reads
-            cd sample"${SAMPLE}" && gunzip sample"${SAMPLE}".fastq.gz
-        fi
+            gunzip $LACA_OUT/demultiplexed_reads/sample"${SAMPLE}"/*.fastq.gz
+            
+          fi
         done
+    done
 done
 
 EOF
