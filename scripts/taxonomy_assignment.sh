@@ -185,8 +185,8 @@ for read in  $READ_DIR/*0"${SLURM_ARRAY_TASK_ID}".fastq.gz; do
         #save minimap alignment stats to csv file for ACT
         minimap_to_csv.py "$(basename "$read" .fastq.gz)"/*.sam "$(basename "$read" .fastq.gz)"/"$(basename "$read" .fastq.gz)"_aln_stats.csv
         
-        cp "$(basename "$read" .fastq.gz)"/*_read-assignment-distributions.tsv $WORK_DIR/read_assignments
-        cp "$(basename "$read" .fastq.gz)"/*_aln_stats.csv $WORK_DIR/minimap2_aln_stats
+        cp "$(basename "$read" .fastq.gz)"/*_read-assignment-distributions.tsv $EMU_OUT/read_assignments
+        cp "$(basename "$read" .fastq.gz)"/*_aln_stats.csv $EMU_OUT/minimap2_aln_stats
     fi
 done
 EOF
