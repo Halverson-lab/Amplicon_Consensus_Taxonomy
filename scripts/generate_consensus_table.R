@@ -131,8 +131,8 @@ combine_taxonomy <- function(sample_id, sintax_df, emu_df, minimap_df){
   ## if the read id contains info from sequencing then remove that info
   if(sum(str_detect(sintax_taxa$read_id, " ")) > 0){
     sintax_taxa <- sintax_taxa %>%
-      separate_wider_regex(read_id, c(read_id = ".*?", "\\s+", run_info = ".*"))  %>% #pull the read id from the run info
-      select(-c(taxon_CI, run_info)) # get rid of taxon_CI and run_info, they're not used
+      mutate(read_id = gsub("[[:blank:]].*?$", "", read_id)) %>%
+      select(-taxon_CI) # get rid of taxon_CI and run_info, they're not used
   } else {
     sintax_taxa <- sintax_taxa %>%
       select(-taxon_CI) # get rid of taxon_CI and run_info, they're not used
@@ -391,7 +391,7 @@ sample_id_df <- data.frame()
 
 for(sample_id in sample_list){
   # check if emu file exists for sample
-  if(file.exists(paste0(emu_path,"read_assignments/", sample_id, "_read-assignment-distributions.tsv"))){
+  if(file.exists(paste0(emu_path,"read_assignments/", sample_id, "_read-assignment-distributions.tsv")) & file.exists(paste0(sintax_path, sample_id, "_sintax.tsv"))) {
     # read in emu and sintax files
     emu_file <- read_tsv(paste0(emu_path,"read_assignments/", sample_id, "_read-assignment-distributions.tsv"), col_types = cols(.default = "d", `...1` = "c"))
     minimap_file <- read_csv(paste0(emu_path, "minimap2_aln_stats/", sample_id, "_aln_stats.csv"))
