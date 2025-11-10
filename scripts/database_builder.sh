@@ -80,15 +80,15 @@ if [[ $build_flag == "true" ]]; then
     if [[ $default_flag == "true" ]]; then
         [[ -z $RRNDB  && -e $DATABASE_DIR/rrnDB.fasta ]] && { echo "please provide the URL to the latest rrnDB or provide is in fasta format in the database directory" ; exit 1; }
     elif [[ $sintax_flag == "true" ]]; then
-        [[ -z "$USER_SEQ" ]] && { echo "USER_SEQ is required for --sintax" ; exit 1; }
+        [[ -z "$BUILD_USER_SEQ" ]] && { echo "USER_SEQ is required for --sintax" ; exit 1; }
     else 
-        [[ -z "$USER_SEQ" ]] && { echo "USER_SEQ is required if building a custom database, run database_builder.sh -d to build a default database" ; exit 1; }
-        [[ -z "$USER_SEQ2TAX" ]] && { echo "USER_SEQ2TAX is required if building a custom database, run database_builder.sh -d to build a default database" ; exit 1; }
+        [[ -z "$BUILD_USER_SEQ" ]] && { echo "USER_SEQ is required if building a custom database, run database_builder.sh -d to build a default database" ; exit 1; }
+        [[ -z "$BUILD_USER_SEQ2TAX" ]] && { echo "USER_SEQ2TAX is required if building a custom database, run database_builder.sh -d to build a default database" ; exit 1; }
     fi
 fi
 
-[[ $add_flag == "true" ]] && [[ -z "$USER_SEQ" ]] && { echo "USER_SEQ is required for --add" ; exit 1; }
-[[ $add_flag == "true" ]] && [[ -z "$USER_SEQ2TAX" ]] && { echo "USER_SEQ2TAX is required for --add" ; exit 1; }
+[[ $add_flag == "true" ]] && [[ -z "$ADD_USER_SEQ" ]] && { echo "USER_SEQ is required for --add" ; exit 1; }
+[[ $add_flag == "true" ]] && [[ -z "$ADD_USER_SEQ2TAX" ]] && { echo "USER_SEQ2TAX is required for --add" ; exit 1; }
 [[ $ncbi_flag == "true" ]] && [[ -z "$ACC_LIST" ]] && { echo "ACC_LIST is required for --ncbi" ; exit 1; }
 [[ $group_flag == "true" ]] && [[ -z "$SIM_THRESH" ]] && { echo "SIM_THRESH is required for --group" ; exit 1; }
 
@@ -196,14 +196,15 @@ if [[ $default_flag  == "true" || $sintax_flag == "true" || $ncbi_flag == "true"
         | taxonkit lineage \
         | taxonkit reformat -t -f "{d}\t{p}\t{c}\t{o}\t{f}\t{g}\t{s}" \
         | csvtk cut -t -f -2 \
-        | csvtk add-header -t -n taxid,domain,phylum,class,order,family,genus,species,t_domain,t_phylum,t_class,t_order,t_family,t_genus,t_species -o taxonomy.tsv
+        | csvtk add-header -t -n taxid,domain,phylum,class,order,family,genus,species,t_domain,t_phylum,t_class,t_order,t_family,t_genus,t_species \
+        | csvtk uniq -f taxid -o taxonomy.tsv
     fi
     
     if [[ $sintax_flag == "true" ]]; then
     
-        seqkit seq -n $USER_SEQ | csvtk add-header -t -n seqid -o read_taxon_list.tsv
+        seqkit seq -n $BUILD_USER_SEQ | csvtk add-header -t -n seqid -o read_taxon_list.tsv
 
-        cat $USER_SEQ  | seqkit replace -p ";.+" > sequences.fasta
+        cat $BUILD_USER_SEQ  | seqkit replace -p ";.+" > sequences.fasta
         
         cat read_taxon_list.tsv \
             | csvtk sep -t -f 1 -s ";" -n seq_id,taxon,tmp \
@@ -240,7 +241,8 @@ if [[ $default_flag  == "true" || $sintax_flag == "true" || $ncbi_flag == "true"
             | taxonkit lineage \
             | taxonkit reformat -t -f "{k}\t{d}\t{p}\t{c}\t{o}\t{f}\t{g}\t{s}" \
             | csvtk cut -t -f -2 \
-            | csvtk add-header -t -n taxid,kingdom,domain,phylum,class,order,family,genus,species,t_kingdom,t_domain,t_phylum,t_class,t_order,t_family,t_genus,t_species -o taxonomy.tsv
+            | csvtk add-header -t -n taxid,kingdom,domain,phylum,class,order,family,genus,species,t_kingdom,t_domain,t_phylum,t_class,t_order,t_family,t_genus,t_species \
+            | csvtk uniq -f taxid -o taxonomy.tsv
     
     fi
     
@@ -282,15 +284,16 @@ if [[ $default_flag  == "true" || $sintax_flag == "true" || $ncbi_flag == "true"
             | taxonkit lineage \
             | taxonkit reformat -t -f "{d}\t{p}\t{c}\t{o}\t{f}\t{g}\t{s}" \
             | csvtk cut -t -f -2 \
-            | csvtk add-header -t -n taxid,domain,phylum,class,order,family,genus,species,t_domain,t_phylum,t_class,t_order,t_family,t_genus,t_species -o taxonomy.tsv
+            | csvtk add-header -t -n taxid,domain,phylum,class,order,family,genus,species,t_domain,t_phylum,t_class,t_order,t_family,t_genus,t_species \
+            | csvtk uniq -f taxid -o taxonomy.tsv
     fi
     
     if [[ $add_flag == "true" ]]; then
         # user provided
-        cat $USER_SEQ >> sequences.fasta
-        cat $USER_SEQ2TAX >> seq2taxid.txt
-        if [[ -z "$USER_TAX" ]]; then
-            cat $USER_TAX >> taxonomy.tsv
+        cat $ADD_USER_SEQ >> sequences.fasta
+        cat $ADD_USER_SEQ2TAX >> seq2taxid.txt
+        if [[ -z "$ADD_USER_TAX" ]]; then
+            cat $ADD_USER_TAX >> taxonomy.tsv
         fi 
     fi
     
