@@ -95,12 +95,12 @@ otu_df <- otu_df %>% mutate(otu = paste0("OTU_", otu)) #paste OTU_ in front of t
 colnames(otu_taxonomy_df) <- c("otu", "taxon_CI", "strand", "final_taxa") # name the columns
 otu_taxonomy <- otu_taxonomy_df[,c(1,2)] # just keep the otu and the taxonomy assignment with confidence intervals
 otu_taxonomy <- otu_taxonomy %>%
-  mutate(domain = str_remove_all(str_extract(taxon_CI, "(?<=d:)(.*?)\\)"), ","), # pull each level of taxonomy and remove the , 
-         phylum = str_remove_all(str_extract(taxon_CI, "(?<=p:)(.*?)\\)"), ","),
-         class = str_remove_all(str_extract(taxon_CI, "(?<=c:)(.*?)\\)"), ","),
-         order = str_remove_all(str_extract(taxon_CI, "(?<=o:)(.*?)\\)"), ","),
-         family = str_remove_all(str_extract(taxon_CI, "(?<=f:)(.*?)\\)"), ","),
-         genus = str_remove_all(str_extract(taxon_CI, "(?<=g:)(.*?)\\)"), ","),
+  mutate(domain = str_remove_all(str_extract(taxon_CI, "(?<=d:)(.*?)\\([0-9]\\.[0-9]{2}\\)"), ","), # pull each level of taxonomy and remove the , 
+         phylum = str_remove_all(str_extract(taxon_CI, "(?<=p:)(.*?)\\([0-9]\\.[0-9]{2}\\)"), ","),
+         class = str_remove_all(str_extract(taxon_CI, "(?<=c:)(.*?)\\([0-9]\\.[0-9]{2}\\)"), ","),
+         order = str_remove_all(str_extract(taxon_CI, "(?<=o:)(.*?)\\([0-9]\\.[0-9]{2}\\)"), ","),
+         family = str_remove_all(str_extract(taxon_CI, "(?<=f:)(.*?)\\([0-9]\\.[0-9]{2}\\)"), ","),
+         genus = str_remove_all(str_extract(taxon_CI, "(?<=g:)(.*?)\\([0-9]\\.[0-9]{2}\\)"), ","),
          species = str_remove_all(str_extract(taxon_CI, "(?<=s:).*"), ",")) %>%
   select(-taxon_CI) %>%
   pivot_longer(cols = !otu, names_to = "taxon_level", values_to = "otu_taxa") %>% #pivot data to long form
@@ -120,12 +120,12 @@ combine_taxonomy <- function(sample_id, sintax_df, emu_df, minimap_df){
   colnames(sintax_df) <- c("read_id", "taxon_CI", "strand", "final_taxa")
   sintax_taxa <- sintax_df[,c(1,2)] #keep only the read_id and the taxonomy levels with CI
   sintax_taxa <- sintax_taxa %>%
-    mutate(domain = str_extract(taxon_CI, "(?<=d:)(.*?)\\)"), #extract each level of taxonomy
-           phylum = str_extract(taxon_CI, "(?<=p:)(.*?)\\)"),
-           class = str_extract(taxon_CI, "(?<=c:)(.*?)\\)"),
-           order = str_extract(taxon_CI, "(?<=o:)(.*?)\\)"),
-           family = str_extract(taxon_CI, "(?<=f:)(.*?)\\)"),
-           genus = str_extract(taxon_CI, "(?<=g:)(.*?)\\)"),
+    mutate(domain = str_extract(taxon_CI, "(?<=d:)(.*?)\\([0-9]\\.[0-9]{2}\\)"), #extract each level of taxonomy
+           phylum = str_extract(taxon_CI, "(?<=p:)(.*?)\\([0-9]\\.[0-9]{2}\\)"),
+           class = str_extract(taxon_CI, "(?<=c:)(.*?)\\([0-9]\\.[0-9]{2}\\)"),
+           order = str_extract(taxon_CI, "(?<=o:)(.*?)\\([0-9]\\.[0-9]{2}\\)"),
+           family = str_extract(taxon_CI, "(?<=f:)(.*?)\\([0-9]\\.[0-9]{2}\\)"),
+           genus = str_extract(taxon_CI, "(?<=g:)(.*?)\\([0-9]\\.[0-9]{2}\\)"),
            species = str_extract(taxon_CI, "(?<=s:).*"))
   
   ## if the read id contains info from sequencing then remove that info
@@ -161,25 +161,40 @@ combine_taxonomy <- function(sample_id, sintax_df, emu_df, minimap_df){
     select(-c(max_AS, min_NM)) %>%
     separate_wider_delim(RNAME, delim = ":", names = c("taxid", "database", "seq_num")) %>%
     mutate(taxid = if_else(is.na(taxid), NA, paste0("taxid_", taxid)))
+
+
+  #multipdlyr if nrows is greater than n_cores*1000
+  if(nrow(minimap_df_trim) > (n_cores*1000)){
+    #subset the taxonomy to only include the taxids needed, significantly speeds up working with large taxonomies
+    minimap_tax_list <- unique(minimap_df_trim$taxid)
+    minimap_emu_taxid_taxonomy <- emu_taxid_taxonomy[minimap_tax_list,]
+    cluster_assign(cluster, minimap_emu_taxid_taxonomy = minimap_emu_taxid_taxonomy)
   
-  #subset the taxonomy to only include the taxids needed, significantly speeds up working with large taxonomies
-  minimap_tax_list <- unique(minimap_df_trim$taxid)
-  minimap_emu_taxid_taxonomy <- emu_taxid_taxonomy[minimap_tax_list,]
-  cluster_assign(cluster, minimap_emu_taxid_taxonomy = minimap_emu_taxid_taxonomy)
+    #partition the dataframe between clusters
+    minimap_part <- minimap_df_trim %>% group_by(taxid) %>% partition(cluster)
   
-  #partition the dataframe between clusters
-  minimap_part <- minimap_df_trim %>% group_by(taxid) %>% partition(cluster)
-  
-  minimap_with_tax <- minimap_part %>%
-    mutate(
-      domain = if_else(is.na(taxid), NA, minimap_emu_taxid_taxonomy[as.character(taxid), "domain"]), #check if the taxid is NA, otherwise get the corresponding taxonomy from the taxonomy table
-      phylum = if_else(is.na(taxid), NA, minimap_emu_taxid_taxonomy[as.character(taxid), "phylum"]),
-      class = if_else(is.na(taxid), NA, minimap_emu_taxid_taxonomy[as.character(taxid), "class"]),
-      order = if_else(is.na(taxid), NA, minimap_emu_taxid_taxonomy[as.character(taxid), "order"]),
-      family = if_else(is.na(taxid), NA, minimap_emu_taxid_taxonomy[as.character(taxid), "family"]),
-      genus = if_else(is.na(taxid), NA, minimap_emu_taxid_taxonomy[as.character(taxid), "genus"]),
-      species = if_else(is.na(taxid), NA, minimap_emu_taxid_taxonomy[as.character(taxid), "species"])) %>%
-    collect()
+    minimap_with_tax <- minimap_part %>%
+      mutate(
+        domain = if_else(is.na(taxid), NA, minimap_emu_taxid_taxonomy[as.character(taxid), "domain"]), #check if the taxid is NA, otherwise get the corresponding taxonomy from the taxonomy table
+        phylum = if_else(is.na(taxid), NA, minimap_emu_taxid_taxonomy[as.character(taxid), "phylum"]),
+        class = if_else(is.na(taxid), NA, minimap_emu_taxid_taxonomy[as.character(taxid), "class"]),
+        order = if_else(is.na(taxid), NA, minimap_emu_taxid_taxonomy[as.character(taxid), "order"]),
+        family = if_else(is.na(taxid), NA, minimap_emu_taxid_taxonomy[as.character(taxid), "family"]),
+        genus = if_else(is.na(taxid), NA, minimap_emu_taxid_taxonomy[as.character(taxid), "genus"]),
+        species = if_else(is.na(taxid), NA, minimap_emu_taxid_taxonomy[as.character(taxid), "species"])) %>%
+      collect()
+  } else {
+    minimap_with_tax <- minimap_df_trim %>%
+      mutate(
+        domain = if_else(is.na(taxid), NA, minimap_emu_taxid_taxonomy[as.character(taxid), "domain"]), 
+        phylum = if_else(is.na(taxid), NA, minimap_emu_taxid_taxonomy[as.character(taxid), "phylum"]),
+        class = if_else(is.na(taxid), NA, minimap_emu_taxid_taxonomy[as.character(taxid), "class"]),
+        order = if_else(is.na(taxid), NA, minimap_emu_taxid_taxonomy[as.character(taxid), "order"]),
+        family = if_else(is.na(taxid), NA, minimap_emu_taxid_taxonomy[as.character(taxid), "family"]),
+        genus = if_else(is.na(taxid), NA, minimap_emu_taxid_taxonomy[as.character(taxid), "genus"]),
+        species = if_else(is.na(taxid), NA, minimap_emu_taxid_taxonomy[as.character(taxid), "species"])) 
+  }
+
   
   ## if it scores equally well for 2+ diff species then species can't be assigned
   #keep top scoring assignment for each  
