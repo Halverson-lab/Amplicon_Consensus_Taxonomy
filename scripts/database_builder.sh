@@ -202,10 +202,13 @@ if [[ $default_flag  == "true" || $sintax_flag == "true" || $ncbi_flag == "true"
     if [[ $sintax_flag == "true" ]]; then
     
         seqkit seq -n $USER_SEQ | csvtk add-header -t -n seqid -o read_taxon_list.tsv
+
+        cat $USER_SEQ  | seqkit replace -p ";.+" > sequences.fasta
         
         cat read_taxon_list.tsv \
             | csvtk sep -t -f 1 -s ";" -n seq_id,taxon,tmp \
             | csvtk cut -t -f 2,3 \
+            | csvtk mutate -t -f taxon -n kingdom -p "k:(.*)" --na \
             | csvtk mutate -t -f taxon -n domain -p "d:(.*)" --na \
             | csvtk mutate -t -f taxon -n phylum -p "p:(.*)" --na \
             | csvtk mutate -t -f taxon -n class -p "c:(.*)" --na \
@@ -213,6 +216,7 @@ if [[ $default_flag  == "true" || $sintax_flag == "true" || $ncbi_flag == "true"
             | csvtk mutate -t -f taxon -n family -p "f:(.*)" --na \
             | csvtk mutate -t -f taxon -n genus -p "g:(.*)" --na \
             | csvtk mutate -t -f taxon -n species -p "s:(.*)" --na \
+            | csvtk replace -t -f kingdom -p ",.*" -r "" \
             | csvtk replace -t -f domain -p ",.*" -r "" \
             | csvtk replace -t -f phylum -p ",.*" -r "" \
             | csvtk replace -t -f class -p ",.*" -r "" \
@@ -230,13 +234,13 @@ if [[ $default_flag  == "true" || $sintax_flag == "true" || $ncbi_flag == "true"
         export TAXONKIT_DB=taxdump/
         
         #cp the taxid.map to make it easier to find
-        cp taxdump/taxid.map ./seq2tax_map.txt
+        cp taxdump/taxid.map ./seq2taxid.txt
         
-        csvtk cut -t -f 2 seq2tax_map.txt \
+        csvtk cut -t -f 2 seq2taxid.txt \
             | taxonkit lineage \
-            | taxonkit reformat -t -f "{k}\t{p}\t{c}\t{o}\t{f}\t{g}\t{s}" \
+            | taxonkit reformat -t -f "{k}\t{d}\t{p}\t{c}\t{o}\t{f}\t{g}\t{s}" \
             | csvtk cut -t -f -2 \
-            | csvtk add-header -t -n taxid,domain,phylum,class,order,family,genus,species,t_domain,t_phylum,t_class,t_order,t_family,t_genus,t_species -o taxonomy.tsv
+            | csvtk add-header -t -n taxid,kingdom,domain,phylum,class,order,family,genus,species,t_kingdom,t_domain,t_phylum,t_class,t_order,t_family,t_genus,t_species -o taxonomy.tsv
     
     fi
     
