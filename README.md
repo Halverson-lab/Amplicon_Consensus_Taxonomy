@@ -72,9 +72,9 @@ The default ACT database is built from a combination of NCBI 16S rRNA RefSeq dat
 
 ### Custom database
 
-Users can build a completely custom database using the `-b` or `--build` flags and providing two files in the config file 1) USER_SEQ, which contains all the 16S sequences in fasta format and 2) USER_SEQ2TAX, which contains a two-column, headerless, tab-delimited list of sequence IDs and their corresponding taxids. The sequence IDs need to match in both files and the taxids should correspond to NCBI taxids. Sequences that cannot be assigned NCBI taxids should be added separately using the `-a | --add` flags after building the initial database. 
+Users can build a completely custom database using the `-b` or `--build` flags and providing two files in the config file 1) BUILD_USER_SEQ, which contains all the 16S sequences in fasta format and 2) BUILD_USER_SEQ2TAX, which contains a two-column, headerless, tab-delimited list of sequence IDs and their corresponding taxids. The sequence IDs need to match in both files and the taxids should correspond to NCBI taxids. Sequences that cannot be assigned NCBI taxids should be added separately using the `-a | --add` flags after building the initial database. 
 
-You can also build a database from a [sintax/usearch formatted](https://www.drive5.com/usearch/manual/tax_annot.html) database using the `-s` or `--sintax` flags. The database should be listed under USER_SEQ in the config file.
+You can also build a database from a [sintax/usearch formatted](https://www.drive5.com/usearch/manual/tax_annot.html) database using the `-s` or `--sintax` flags. The database should be listed under BUILD_USER_SEQ in the config file.
 Pre-built databases for Silva, GreenGenes2, GTDB can be found here (add link), but are not recommended for these reasons (cite paper). Scripts for how they were generated can be found in X folder.
 
 ### Modifying the existing database
@@ -85,9 +85,9 @@ Modifying the database with user provided files and the `--add` flag will give t
 
 | Config setting | file description |
 | :------------- | :--------------- |
-| USER_SEQ       | a fasta file of sequences to be added |
-| USER_SEQ2TAX   | 2 column tab delimited file of sequence headers and taxids |
-| USER_TAX       | tab delimited taxonomy file for each new taxid |
+| ADD_USER_SEQ       | a fasta file of sequences to be added |
+| ADD_USER_SEQ2TAX   | 2 column tab delimited file of sequence headers and taxids |
+| ADD_USER_TAX       | tab delimited taxonomy file for each new taxid |
 
 Taxonomy information is only required if adding taxids that do not exist in NCBI (such as synthetic sequences). The taxonomy file should be contain the columns taxid, domaim, phylum, class, order, family, genus, species, t_domain, t_phylum, t_class, t_order, t_family, t_genus, and t_species. The columns starting with "t_" should contain the taxid of the corresponding phylogeny. Ensure any added taxids do not already exist. Below is an example for adding a new species and a synthetic sequence; the new species is filled in with the existing taxids for every level except the last and the sythetic sequence is given new taxids. Taxids can be found on the [NCBI taxonomy browser](https://www.ncbi.nlm.nih.gov/datasets/taxonomy/tree/).
 
@@ -149,15 +149,11 @@ I recommend you inspect your reads after this step to check for potential issues
  
  Reads are clustered using [LACA](https://github.com/yanhui09/laca). This step can be time consuming, depending on how large your read set is. This is a good time to ensure the path to `LACA` in the config.txt file is correct and matches where the environment_setup script installed `LACA`. `LACA` requires all of the reads copied into a specific file structure. The `laca_setup.sh` script will generate a slurm script to move all files, and will submit the script if the `-r` flag is used. If the `-r` flag is not used then users will need to manually submit the slurm script for re-organizing the files before `LACA` can be run. Some modifications had to be made to `LACA` in order for it to run, these changes are in the `laca_changes` directory and will be automatically applied by the laca setup script. 
  
- The setup script will generate the `LACA` `config.yaml` file in the `5_laca` directory. This config file needs to be manually checked to ensure its correct. You will need to edit the primers in the quality control section, around line 42, and in the phylogenetic tree section, around line 178. Additionally, you need to check the medaka version model, around line 144, and ensure it matches the basecalling model of your sequences. Once you have checked it, you can manually submit the `laca_run.sh` slurm script. 
+ The setup script will generate the `LACA` `config.yaml` file in the `5_laca` directory. This config file needs to be manually checked to ensure its correct. You will need to edit the primers in the quality control section, around line 42, and in the phylogenetic tree section, around line 178. Additionally, you need to check the medaka version model, around line 144, and ensure it matches the basecalling model of your sequences. Once you have checked it, you can manually submit the `5_laca_run.sh` slurm script. 
 
- If the clustering fails or times out you can resubmit the `laca_run.sh` slurm and it will resume where it left off.
+ If the clustering fails or times out you can resubmit the `5_laca_run.sh` slurm and it will resume where it left off.
 
 ```bash
-# Set up laca (following their tutorial for the config file)
-# use your preferred conda
-conda activate laca
-
 # Set up the files and folders for laca and generate the config file
 # Use -r to run the slurm script, leave off the flag to just regenerate the config file and slurm scripts
 cd $WORK_DIR
@@ -169,7 +165,7 @@ vim $WORK_DIR/5_laca/config.yaml
 
 # once you've checked your config file you can submit the slurm script
 cd $WORK_DIR/slurm_scripts
-sbatch laca_run.sh
+sbatch 5_laca_run.sh
 
 conda deactivate
 # clustering will take awhile, you can run EMU and Sintax on your samples while it runs and then run sintax on the OTUs when they're finished
