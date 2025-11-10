@@ -166,13 +166,13 @@ cd $LACA_OUT
 EOF
 
 if [ $CONDA == "conda" ]; then
-    echo 'eval "$(conda shell hook --shell bash)"' >> laca_run.sh
+    echo 'eval "$(conda shell hook --shell bash)"' >> 5_laca_run.sh
     echo 'source activate laca' >> laca_run.sh
 elif [ $CONDA == "mamba" ]; then
-    echo 'eval "$(mamba shell hook --shell bash)"' >> laca_run.sh
+    echo 'eval "$(mamba shell hook --shell bash)"' >> 5_laca_run.sh
     echo 'mamba activate laca' >> laca_run.sh
 elif [ $CONDA == "micromamba" ]; then
-    echo 'eval "$(micromamba shell hook --shell bash)"' >> laca_run.sh
+    echo 'eval "$(micromamba shell hook --shell bash)"' >> 5_laca_run.sh
     echo 'micromamba activate laca' >> laca_run.sh
 fi
 
