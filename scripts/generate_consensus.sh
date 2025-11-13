@@ -24,7 +24,9 @@ elif echo "$NA_THRESHOLD" | awk '{exit !($1 > 1)}'; then
     exit 1
 fi
 
-
+[[ -z "$EMU_OUT" ]] && { EMU_OUT="$WORK_DIR"/6_emu ; }
+[[ -z "$SINTAX_OUT" ]] && { SINTAX_OUT="$WORK_DIR"/7_sintax ; }
+[[ -z "$LACA_OUT" ]] && { LACA_OUT="$WORK_DIR"/5_laca ; }
 [[ -z "$(ls -A $EMU_OUT/read_assignments/)" ]] && { echo "${EMU_OUT}/read_assignments/ is empty"; exit 1; }
 [[ -z "$(ls -A $SINTAX_OUT)" ]] && { echo "${SINTAX_OUT} is empty"; exit 1; }
 [[ ! -e $LACA_OUT/quant/seqID_to_otu.tsv ]] && { echo "${LACA_OUT}/quant/seqID_to_otu.tsv does not exist"; exit 1; }
