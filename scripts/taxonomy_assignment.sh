@@ -121,6 +121,11 @@ if [[ ! -e $SINTAX_OUT ]]; then
     mkdir $SINTAX_OUT
 fi
 
+if [[ -z "$LACA_OUT" ]]; then
+    echo "LACA output directory not provided, using default"
+    LACA_OUT="$WORK_DIR"/5_laca
+fi
+
 #### if using the provided databases and they are still zipped then unzip them 
 if [[ -e $DATABASE_DIR/sintax_db.fasta.gz ]]; then
     cd $DATABASE_DIR
