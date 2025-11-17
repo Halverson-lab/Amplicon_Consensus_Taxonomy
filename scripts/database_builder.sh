@@ -194,10 +194,10 @@ if [[ $default_flag  == "true" || $sintax_flag == "true" || $ncbi_flag == "true"
         # Build taxonomy.tsv
         csvtk cut -t -f 2 seq2taxid.txt \
         | taxonkit lineage \
-        | taxonkit reformat -t -f "{d}\t{p}\t{c}\t{o}\t{f}\t{g}\t{s}" \
+        | taxonkit reformat2 -t -f "{domain|superkingdom|kingdom|acellular root}\t{phylum}\t{class}\t{order}\t{family}\t{genus}\t{species}" \
         | csvtk cut -t -f -2 \
         | csvtk add-header -t -n taxid,domain,phylum,class,order,family,genus,species,t_domain,t_phylum,t_class,t_order,t_family,t_genus,t_species \
-        | csvtk uniq -f taxid -o taxonomy.tsv
+        | csvtk uniq -t -f taxid -o taxonomy.tsv
     fi
     
     if [[ $sintax_flag == "true" ]]; then
@@ -239,10 +239,10 @@ if [[ $default_flag  == "true" || $sintax_flag == "true" || $ncbi_flag == "true"
         
         csvtk cut -t -f 2 seq2taxid.txt \
             | taxonkit lineage \
-            | taxonkit reformat -t -f "{k}\t{d}\t{p}\t{c}\t{o}\t{f}\t{g}\t{s}" \
+            | taxonkit reformat2 -t -f "{domain|superkingdom|kingdom|acellular root}\t{phylum}\t{class}\t{order}\t{family}\t{genus}\t{species}" \
             | csvtk cut -t -f -2 \
-            | csvtk add-header -t -n taxid,kingdom,domain,phylum,class,order,family,genus,species,t_kingdom,t_domain,t_phylum,t_class,t_order,t_family,t_genus,t_species \
-            | csvtk uniq -f taxid -o taxonomy.tsv
+            | csvtk add-header -t -n taxid,domain,phylum,class,order,family,genus,species,t_domain,t_phylum,t_class,t_order,t_family,t_genus,t_species \
+            | csvtk uniq -t -f taxid -o taxonomy.tsv
     
     fi
     
@@ -282,10 +282,10 @@ if [[ $default_flag  == "true" || $sintax_flag == "true" || $ncbi_flag == "true"
         export TAXONKIT_DB=$DATABASE_DIR/taxdump
         csvtk cut -t -f 2 seq2taxid.txt \
             | taxonkit lineage \
-            | taxonkit reformat -t -f "{d}\t{p}\t{c}\t{o}\t{f}\t{g}\t{s}" \
+            | taxonkit reformat2 -t -f "{domain|superkingdom|kingdom|acellular root}\t{phylum}\t{class}\t{order}\t{family}\t{genus}\t{species}" \
             | csvtk cut -t -f -2 \
             | csvtk add-header -t -n taxid,domain,phylum,class,order,family,genus,species,t_domain,t_phylum,t_class,t_order,t_family,t_genus,t_species \
-            | csvtk uniq -f taxid -o taxonomy.tsv
+            | csvtk uniq -t -f taxid -o taxonomy.tsv
     fi
     
     if [[ $add_flag == "true" ]]; then
