@@ -1,6 +1,63 @@
 #!/bin/bash 
 #### filter by length, demultiplex with cutadapt, filter again
 
+
+QC_1_flag=false
+demux_flag=false
+QC_2_flag=false
+all_flag=false
+
+usage() {
+ echo "Usage: $0 [OPTIONS]"
+ echo "Options:"
+ echo " -h, --help      Display this help message"
+ echo " -1, --qc1       Run QC and filtering pre-demultiplexing"
+ echo " -d, --demux     Run demultiplexing"
+ echo " -2, --qc2       Run QC and filtering post-demultiplexing"
+ echo " -a, --all       Run demultiplexing with pre- and post- filtering"
+}
+
+if [ $# -eq 0 ]; then
+  echo "Error: At least one flag is required."
+  usage
+  exit 1
+fi
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -a | --all) 
+      QC_1_flag=true
+      demux_flag=true
+      QC_2_flag=true
+      all_flag=true
+      echo "Running demultiplexing with pre- and post- filtering" >&2
+      ;;
+    -1 | --qc1)
+      QC_1_flag=true
+      echo "Running QC and filtering pre-demultiplexing" >&2
+      ;;
+    -d | --demux) 
+      demux_flag=true
+      echo "Demultiplexing" >&2
+      ;;
+    -2 | --qc2)
+      QC_2_flag=true
+      echo "Running QC and filtering post-demultiplexing" >&2
+      ;;
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "$1 is not recognized" >&2
+      usage
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+
 #user defined variables
 source config.txt
 
@@ -11,26 +68,37 @@ source config.txt
 [[ -z "$BARCODES" ]] && { echo "BARCODES is empty" ; exit 1; }
 [[ -z "$BARCODE_SEQUENCE" ]] && { echo "BARCODE_SEQUENCE is empty" ; exit 1; }
 
-[[ -z "$LOOSE_MIN_LENGTH" ]] && { echo "LOOSE_MIN_LENGTH is empty" ; exit 1; }
-[[ -z "$LOOSE_MAX_LENGTH" ]] && { echo "LOOSE_MAX_LENGTH is empty" ; exit 1; }
-[[ -z "$LOOSE_MIN_Q" ]] && { echo "LOOSE_MIN_Q is empty" ; exit 1; }
-
-
-if [ $MULTI_LENGTH == "FALSE" ]; then
-    [[ -z "$STRICT_MIN_LENGTH" ]] && { echo "STRICT_MIN_LENGTH is empty" ; exit 1; }
-    [[ -z "$STRICT_MAX_LENGTH" ]] && { echo "STRICT_MAX_LENGTH is empty" ; exit 1; }
-    [[ -z "$STRICT_MIN_Q" ]] && { echo "STRICT_MIN_Q is empty" ; exit 1; }
-elif [ $MULTI_LENGTH == "TRUE" ]; then
-    [[ -z "$NUM_OF_AMPLICON_SETS" ]] && { echo "NUM_OF_AMPLICON_SETS is empty" ; exit 1; }
-    [[ -z "$LIB_SET_1" ]] && { echo "Define LIB_SET for 1 or more amplicon sets" ; exit 1; }
-    [[ -z "$BARCODE_SET_1" ]] && { echo "Define BARCODE_SET for 1 or more amplicon sets" ; exit 1; }
-    [[ -z "$MIN_1" ]] && { echo "Set MIN length for 1 or more amplicon sets" ; exit 1; }
-    [[ -z "$MAX_1" ]] && { echo "Set MAX length for 1 or more amplicon sets" ; exit 1; }
-    [[ -z "$MINQ_1" ]] && { echo "Set MINQ for 1 or more amplicon sets" ; exit 1; }
-else
-    echo "MULTI_LENGTH must be set as TRUE or FALSE"
-    exit 1
+if [ $QC_1_flag == "true" ]; then
+    [[ -z "$LOOSE_MIN_LENGTH" ]] && { echo "LOOSE_MIN_LENGTH is empty" ; exit 1; }
+    [[ -z "$LOOSE_MAX_LENGTH" ]] && { echo "LOOSE_MAX_LENGTH is empty" ; exit 1; }
+    [[ -z "$LOOSE_MIN_Q" ]] && { echo "LOOSE_MIN_Q is empty" ; exit 1; }
 fi
+
+
+if [ $demux_flag == "true" ]; then
+    [[ -z "$BARCODE_OVERLAP" ]] && { echo "BARCODE_OVERLAP is empty" ; exit 1; }
+    [[ -z "$BARCODE_ERROR" ]] && { echo "BARCODE_ERROR is empty" ; exit 1; }
+fi
+
+if [ $QC_2_flag == "true" ]; then
+    if [ $MULTI_LENGTH == "FALSE" ]; then
+        [[ -z "$STRICT_MIN_LENGTH" ]] && { echo "STRICT_MIN_LENGTH is empty" ; exit 1; }
+        [[ -z "$STRICT_MAX_LENGTH" ]] && { echo "STRICT_MAX_LENGTH is empty" ; exit 1; }
+        [[ -z "$STRICT_MIN_Q" ]] && { echo "STRICT_MIN_Q is empty" ; exit 1; }
+    elif [ $MULTI_LENGTH == "TRUE" ]; then
+        [[ -z "$NUM_OF_AMPLICON_SETS" ]] && { echo "NUM_OF_AMPLICON_SETS is empty" ; exit 1; }
+        [[ -z "$LIB_SET_1" ]] && { echo "Define LIB_SET for 1 or more amplicon sets" ; exit 1; }
+        [[ -z "$BARCODE_SET_1" ]] && { echo "Define BARCODE_SET for 1 or more amplicon sets" ; exit 1; }
+        [[ -z "$MIN_1" ]] && { echo "Set MIN length for 1 or more amplicon sets" ; exit 1; }
+        [[ -z "$MAX_1" ]] && { echo "Set MAX length for 1 or more amplicon sets" ; exit 1; }
+        [[ -z "$MINQ_1" ]] && { echo "Set MINQ for 1 or more amplicon sets" ; exit 1; }
+    else
+        echo "MULTI_LENGTH must be set as TRUE or FALSE"
+        exit 1
+    fi
+fi
+
+
 
 
 if [ $CONDA == "conda" ]; then
@@ -51,15 +119,21 @@ fi
 
 cd $WORK_DIR
 
-if [[ ! -e 2_chopper_1 ]]; then
-    mkdir 2_chopper_1
+if [[ -z "$PRE_DEMUX_QC_OUT" ]]; then
+    echo "Pre-demux filtering output directory not provided, using default"
+    PRE_DEMUX_QC_OUT="$WORK_DIR"/2_chopper_1
 fi
-if [[ ! -e 3_Demultiplex ]]; then
-    mkdir 3_Demultiplex
+
+if [[ -z "$DEMUX_OUT" ]]; then
+    echo "Demultiplexed read directory not provided, using default"
+    DEMUX_OUT="$WORK_DIR"/3_Demultiplex
 fi
-if [[ ! -e 4_chopper_2 ]]; then
-    mkdir 4_chopper_2
+
+if [[ -z "$POST_DEMUX_QC_OUT" ]]; then
+    echo "Post-demux filtering output directory not provided, using default"
+    POST_DEMUX_QC_OUT="$WORK_DIR"/4_chopper_2
 fi
+
 if [[ ! -e slurm_scripts ]]; then
     mkdir slurm_scripts
 fi
@@ -84,7 +158,7 @@ cat << EOF > 2_chopper_1_slurm.sh
 
 WORK_DIR=$WORK_DIR
 
-cd $WORK_DIR/2_chopper_1
+cd $PRE_DEMUX_QC_OUT
 EOF
 
 if [ $CONDA == "conda" ]; then
@@ -121,16 +195,7 @@ else
     | gzip > "${SLURM_ARRAY_TASK_ID}"_filt.fastq.gz
 fi
 
-EXIT_CODE=$?
-# Log the exit code to a task-specific file
-if [ $EXIT_CODE -ne 0 ]; then
-    echo "Task $SLURM_ARRAY_TASK_ID failed with exit code: $EXIT_CODE" >> 2_chopper_1_slurm.log
-else
-    echo "Task $SLURM_ARRAY_TASK_ID succeeded" >> 2_chopper_1_slurm.log
-fi
-
 EOF
-
 
 
 ################################################ Demultiplex with cutadapt ################################################
@@ -146,10 +211,10 @@ cat << EOF > 3_Demux_slurm.sh
 #SBATCH --mail-type=END,FAIL
 #SBATCH --array=1-$LIBRARY
 
-cd $WORK_DIR/3_Demultiplex
+cd $DEMUX_OUT
 
 WORK_DIR=$WORK_DIR
-READ_DIR=$WORK_DIR/2_chopper_1
+READ_DIR=$PRE_DEMUX_QC_OUT
 BARCODE_FILE=$BARCODE_FILE
 BARCODE_OVERLAP=$BARCODE_OVERLAP
 BARCODE_ERROR=$BARCODE_ERROR
@@ -170,13 +235,6 @@ fi
 cat << 'EOF' >> 3_Demux_slurm.sh
 cutadapt --revcomp --overlap $BARCODE_OVERLAP -j 16 -e $BARCODE_ERROR -a file:"${BARCODE_FILE}" -o "${SLURM_ARRAY_TASK_ID}"_{name}.fastq.gz $READ_DIR/"${SLURM_ARRAY_TASK_ID}"_filt.fastq.gz
 
-EXIT_CODE=$?
-# Log the exit code to a task-specific file
-if [ $EXIT_CODE -ne 0 ]; then
-    echo "Task $SLURM_ARRAY_TASK_ID failed with exit code: $EXIT_CODE" >> 3_Demux_slurm.log
-else
-    echo "Task $SLURM_ARRAY_TASK_ID succeeded" >> 3_Demux_slurm.log
-fi
 EOF
 
 
@@ -205,7 +263,7 @@ if [ $MULTI_LENGTH == "FALSE" ]; then
 #SBATCH --array=$ARRAY_SEQUENCE
 
 WORK_DIR=$WORK_DIR
-cd $WORK_DIR/4_chopper_2
+cd $POST_DEMUX_QC_OUT
 EOF
 
     if [ $CONDA == "conda" ]; then
@@ -286,7 +344,7 @@ elif [ $MULTI_LENGTH == "TRUE" ]; then
 #SBATCH --array=$ARRAY_SEQUENCE
 
 WORK_DIR=$WORK_DIR
-cd $WORK_DIR/4_chopper_2
+cd $POST_DEMUX_QC_OUT
 EOF
 
         if [ $CONDA == "conda" ]; then
@@ -320,13 +378,6 @@ do
     fi
 done
 
-EXIT_CODE=$?
-# Log the exit code to a task-specific file
-if [ $EXIT_CODE -ne 0 ]; then
-    echo "Task $SLURM_ARRAY_TASK_ID failed with exit code: $EXIT_CODE" >> $LOG_FILE
-else
-    echo "Task $SLURM_ARRAY_TASK_ID succeeded" >> $LOG_FILE
-fi
 EOF
 
     done
@@ -337,36 +388,76 @@ fi
 
 ################################################ Submit the slurm with each job dependent on the previous finishing ################################################
 
-#Check if the corresponding folder is empty then submit the relevant slurm scripts to populate that file
-
-if [ $MULTI_LENGTH == "TRUE" ]; then
-    if [ -z "$( ls -A $WORK_DIR/2_chopper_1 )" ]; then
+[[ $QC_1_flag == "true" && $demux_flag == "true" && $QC_2_flag == "true" ]] && { all_flag=true ; }
+if [ $all_flag == "true" ]; then
+    if [ $MULTI_LENGTH == "TRUE" ]; then
         JOBID1=$(sbatch --parsable 2_chopper_1_slurm.sh)
         JOBID2=$(sbatch --parsable --dependency=afterok:$JOBID1 3_Demux_slurm.sh)
         for m in $(seq 1 $NUM_OF_AMPLICON_SETS); do  sbatch --parsable --dependency=afterok:$JOBID2 chopper_set${m}_slurm.sh ; done
-    elif [ -z "$( ls -A $WORK_DIR/3_Demultiplex )" ]; then
-        JOBID2=$(sbatch --parsable 3_Demux_slurm.sh)
-        sbatch --parsable --dependency=afterok:$JOBID2 4_chopper_2_slurm.sh
-        for m in $(seq 1 $NUM_OF_AMPLICON_SETS); do  sbatch --parsable --dependency=afterok:$JOBID2 chopper_set${m}_slurm.sh ; done
-    elif [ -z "$( ls -A $WORK_DIR/4_chopper_2 )" ]; then
-        for m in $(seq 1 $NUM_OF_AMPLICON_SETS); do  sbatch --parsable chopper_set${m}_slurm.sh ; done
     else
-        echo "Folders 2-4 already contain files"
+        JOBID1=$(sbatch --parsable 2_chopper_1_slurm.sh)
+        JOBID2=$(sbatch --parsable --dependency=afterok:$JOBID1 3_Demux_slurm.sh)
+        sbatch --parsable --dependency=afterok:$JOBID2 4_chopper_2_slurm.sh
     fi
-else
-    if [ -z "$( ls -A $WORK_DIR/2_chopper_1 )" ]; then
-        JOBID1=$(sbatch --parsable 2_chopper_1_slurm.sh)
+elif [ $QC_1_flag == "true" ]; then
+    JOBID1=$(sbatch --parsable 2_chopper_1_slurm.sh)
+    if [ $demux_flag == "true" ]; then
         JOBID2=$(sbatch --parsable --dependency=afterok:$JOBID1 3_Demux_slurm.sh)
-        sbatch --parsable --dependency=afterok:$JOBID2 4_chopper_2_slurm.sh
-    elif [ -z "$( ls -A $WORK_DIR/3_Demultiplex )" ]; then
-        JOBID2=$(sbatch --parsable 3_Demux_slurm.sh)
-        sbatch --parsable --dependency=afterok:$JOBID2 4_chopper_2_slurm.sh
-    elif [ -z "$( ls -A $WORK_DIR/4_chopper_2 )" ]; then
-        sbatch --parsable 4_chopper_2_slurm.sh
+        if [ $QC_2_flag == "true" ]; then
+            if [ $MULTI_LENGTH == "TRUE" ]; then
+                 for m in $(seq 1 $NUM_OF_AMPLICON_SETS); do  sbatch --parsable --dependency=afterok:$JOBID2 chopper_set${m}_slurm.sh ; done
+            else
+                 sbatch --parsable --dependency=afterok:$JOBID2 4_chopper_2_slurm.sh
+            fi
+        fi
+    fi
+elif [ $demux_flag == "true" ]; then
+    JOBID2=$(sbatch --parsable 3_Demux_slurm.sh)
+    if [ $QC_2_flag == "true" ]; then
+        if [ $MULTI_LENGTH == "TRUE" ]; then
+             for m in $(seq 1 $NUM_OF_AMPLICON_SETS); do  sbatch --parsable --dependency=afterok:$JOBID2 chopper_set${m}_slurm.sh ; done
+        else
+             sbatch --parsable --dependency=afterok:$JOBID2 4_chopper_2_slurm.sh
+        fi
+    fi
+elif [ $QC_2_flag == "true" ]; then
+    if [ $MULTI_LENGTH == "TRUE" ]; then
+         for m in $(seq 1 $NUM_OF_AMPLICON_SETS); do  sbatch --parsable chopper_set${m}_slurm.sh ; done
     else
-        echo "Folders 2-4 already contain files"
+         sbatch 4_chopper_2_slurm.sh
     fi
 fi
+
+
+
+#if [ $MULTI_LENGTH == "TRUE" ]; then
+#    if [ -z "$( ls -A $PRE_DEMUX_QC_OUT )" ]; then
+#        JOBID1=$(sbatch --parsable 2_chopper_1_slurm.sh)
+#        JOBID2=$(sbatch --parsable --dependency=afterok:$JOBID1 3_Demux_slurm.sh)
+#        for m in $(seq 1 $NUM_OF_AMPLICON_SETS); do  sbatch --parsable --dependency=afterok:$JOBID2 chopper_set${m}_slurm.sh ; done
+#    elif [ -z "$( ls -A $DEMUX_OUT )" ]; then
+#        JOBID2=$(sbatch --parsable 3_Demux_slurm.sh)
+#        sbatch --parsable --dependency=afterok:$JOBID2 4_chopper_2_slurm.sh
+#        for m in $(seq 1 $NUM_OF_AMPLICON_SETS); do  sbatch --parsable --dependency=afterok:$JOBID2 chopper_set${m}_slurm.sh ; done
+#    elif [ -z "$( ls -A $POST_DEMUX_QC_OUT )" ]; then
+#        for m in $(seq 1 $NUM_OF_AMPLICON_SETS); do  sbatch --parsable chopper_set${m}_slurm.sh ; done
+#    else
+#        echo "Folders 2-4 already contain files"
+#    fi
+#else
+#    if [ -z "$( ls -A $PRE_DEMUX_QC_OUT )" ]; then
+#        JOBID1=$(sbatch --parsable 2_chopper_1_slurm.sh)
+#        JOBID2=$(sbatch --parsable --dependency=afterok:$JOBID1 3_Demux_slurm.sh)
+#        sbatch --parsable --dependency=afterok:$JOBID2 4_chopper_2_slurm.sh
+#    elif [ -z "$( ls -A $DEMUX_OUT )" ]; then
+#        JOBID2=$(sbatch --parsable 3_Demux_slurm.sh)
+#        sbatch --parsable --dependency=afterok:$JOBID2 4_chopper_2_slurm.sh
+#    elif [ -z "$( ls -A $POST_DEMUX_QC_OUT )" ]; then
+#        sbatch --parsable 4_chopper_2_slurm.sh
+#    else
+#        echo "Folders 2-4 already contain files"
+#    fi
+#fi
 
 if [ $CONDA == "conda" ]; then
     conda deactivate
