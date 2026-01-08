@@ -136,15 +136,15 @@ fi
 
 cd $WORK_DIR/slurm_scripts
 ### Write the necessary slurm scripts
-
-JOB_TIME=$(($LIBRARY * 3))
+#if job time is empty then default is 3 hours per library libraries
+[[ -z "$EMU_JOB_TIME" ]] && { EMU_JOB_TIME=$(($LIBRARY * 3)) ; }
 ARRAY_SEQUENCE=$(IFS=,; echo "${BARCODE_SEQUENCE[*]}")
 
 ################################################ EMU ################################################
 cat << EOF > 6_emu_slurm.sh
 #!/bin/bash 
 
-#SBATCH --time=0-$JOB_TIME:00:00  # max job runtime
+#SBATCH --time=0-$EMU_JOB_TIME:00:00  # max job runtime
 #SBATCH --cpus-per-task=$EMU_THREADS  # number of processor cores
 #SBATCH --nodes=1  # number of nodes
 #SBATCH --mem=200G  # max memory
@@ -174,8 +174,13 @@ elif [ $CONDA == "micromamba" ]; then
 fi
 
 cat << 'EOF' >> 6_emu_slurm.sh
-for read in  $READ_DIR/*0"${SLURM_ARRAY_TASK_ID}".fastq.gz; do
-    if [[ -e $read ]] ; then
+for read in  $READ_DIR/*0"${SLURM_ARRAY_TASK_ID}".fast*; do # for each read in the read directory
+    if [[ -e $read ]] ; then #if the read exists
+        # strip the excess info from the sequence headers, by saving it as a temporary file 
+        seqkit seq -i $read > tmp_"$(basename "${read%.*}")".fastq.gz 
+        read=tmp_"$(basename "${read%.*}")".fastq.gz
+
+        #run emu with the stripped file
         emu abundance --type lr:hq \
             --keep-counts \
             --keep-files \
@@ -187,21 +192,26 @@ for read in  $READ_DIR/*0"${SLURM_ARRAY_TASK_ID}".fastq.gz; do
             --output-dir $(basename "$read" .fastq.gz) \
             --output-basename $(basename "$read" .fastq.gz) 
                     
-        #save minimap alignment stats to csv file for ACT
+        # save minimap alignment stats to csv file for ACT
         minimap_to_csv.py "$(basename "$read" .fastq.gz)"/*.sam "$(basename "$read" .fastq.gz)"/"$(basename "$read" .fastq.gz)"_aln_stats.csv
-        
+
+        # copy the important files to the relevant folders for later
         cp "$(basename "$read" .fastq.gz)"/*_read-assignment-distributions.tsv $EMU_OUT/read_assignments
         cp "$(basename "$read" .fastq.gz)"/*_aln_stats.csv $EMU_OUT/minimap2_aln_stats
+
+        # remove the temporary read file
+        rm tmp*
     fi
 done
 EOF
 
 
 ################################################ Sintax samples ################################################
+[[ -z "$SINTAX_JOB_TIME" ]] && { SINTAX_JOB_TIME=$(($LIBRARY * 3)) ; }
 cat << EOF > 7_sintax_slurm.sh
 #!/bin/bash 
 
-#SBATCH --time=0-$JOB_TIME:00:00  # max job runtime
+#SBATCH --time=0-$SINTAX_JOB_TIME:00:00  # max job runtime
 #SBATCH --cpus-per-task=$SINTAX_THREADS  # number of processor cores
 #SBATCH --nodes=1  # number of nodes
 #SBATCH --mem=200G  # max memory
@@ -232,10 +242,15 @@ fi
 
 
 cat << 'EOF' >> 7_sintax_slurm.sh
-for read in  $READ_DIR/*0"${SLURM_ARRAY_TASK_ID}".fastq.gz; do
+for read in  $READ_DIR/*0"${SLURM_ARRAY_TASK_ID}".fast*; do # for each read in the read directory
     #get number of reads
     READ_COUNT=$(seqkit stats $read -T | csvtk -t cut -f 4 | csvtk del-header)
-    if [[ ! $READ_COUNT -eq 0 ]]; then
+    if [[ ! $READ_COUNT -eq 0 ]]; then # if there are >0 reads
+        # strip the excess info from the sequence headers, by saving it as a temporary file 
+        seqkit seq -i $read > tmp_"$(basename "${read%.*}")".fastq.gz
+        read=tmp_"$(basename "${read%.*}")".fastq.gz
+
+        # run sintax with the temp file
         vsearch --sintax \
             $read \
             --db $SINTAX_DB \
@@ -244,6 +259,9 @@ for read in  $READ_DIR/*0"${SLURM_ARRAY_TASK_ID}".fastq.gz; do
             --strand both \
             -notrunclabels \
             --sintax_random
+
+        # remove the temporary read file
+        rm tmp*
     fi
 done
 EOF
@@ -256,7 +274,7 @@ EOF
 cat << EOF > 7_sintax_OTU_slurm.sh
 #!/bin/bash 
 
-#SBATCH --time=0-$JOB_TIME:00:00  # max job runtime
+#SBATCH --time=0-$SINTAX_JOB_TIME:00:00  # max job runtime
 #SBATCH --cpus-per-task=$SINTAX_THREADS  # number of processor cores
 #SBATCH --nodes=1  # number of nodes
 #SBATCH --mem=200G  # max memory
