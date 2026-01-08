@@ -144,10 +144,13 @@ cd $WORK_DIR/slurm_scripts
 
 
 ################################################ First round of filtering, pre-demux ################################################
+#if job time is empty then default is 6 hours
+[[ -z "$QC1_JOB_TIME" ]] && { QC1_JOB_TIME=6 ; }
+
 cat << EOF > 2_chopper_1_slurm.sh
 #!/bin/bash
 
-#SBATCH --time=0-4:00:00  # max job runtime
+#SBATCH --time=0-${QC1_JOB_TIME}:00:00  # max job runtime
 #SBATCH --cpus-per-task=$QC_THREADS  # number of processor cores
 #SBATCH --nodes=1  # number of nodes
 #SBATCH --mem=200G  # max memory
@@ -240,7 +243,8 @@ EOF
 
 ################################################ Second round of filtering, post-demux ################################################
 
-JOB_TIME=$(($LIBRARY * 1))
+#if job time is empty then default is number of libraries
+[[ -z "$QC2_JOB_TIME" ]] && { QC2_JOB_TIME=$(($LIBRARY * 1)) ; }
 
 # Write one slurm script with the strict variables if there is only one set of primer lengths
 if [ $MULTI_LENGTH == "FALSE" ]; then
@@ -253,7 +257,7 @@ if [ $MULTI_LENGTH == "FALSE" ]; then
     cat << EOF > 4_chopper_2_slurm.sh
 #!/bin/bash 
 
-#SBATCH --time=0-${JOB_TIME}:00:00  # max job runtime
+#SBATCH --time=0-${QC2_JOB_TIME}:00:00  # max job runtime
 #SBATCH --cpus-per-task=$QC_THREADS  # number of processor cores
 #SBATCH --nodes=1  # number of nodes
 #SBATCH --mem=200G  # max memory
@@ -334,7 +338,7 @@ elif [ $MULTI_LENGTH == "TRUE" ]; then
         cat << EOF > chopper_set"$m"_slurm.sh
 #!/bin/bash 
 
-#SBATCH --time=0-${JOB_TIME}:00:00  # max job runtime
+#SBATCH --time=0-${QC2_JOB_TIME}:00:00  # max job runtime
 #SBATCH --cpus-per-task=$QC_THREADS  # number of processor cores
 #SBATCH --nodes=1  # number of nodes
 #SBATCH --mem=200G  # max memory
