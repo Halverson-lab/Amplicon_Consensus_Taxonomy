@@ -104,10 +104,11 @@ fi
 ### Write the necessary slurm scripts
 if [[ $slurm_flag == "true" ]]; then
     cd $WORK_DIR/slurm_scripts
+    [[ -z "$CONS_JOB_TIME" ]] && { CONS_JOB_TIME=$(($LIBRARY * 2)) ; }
     cat << EOF > generate_consensus_slurm.sh
 #!/bin/bash 
 
-#SBATCH --time=0-4:00:00  # max job runtime
+#SBATCH --time=0-$CONS_JOB_TIME:00:00  # max job runtime
 #SBATCH --cpus-per-task=$QC_THREADS  # number of processor cores
 #SBATCH --nodes=1  # number of nodes
 #SBATCH --mem=200G  # max memory
