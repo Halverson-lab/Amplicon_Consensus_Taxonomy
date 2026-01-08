@@ -95,44 +95,18 @@ fi
 cd $WORK_DIR
 
 #### make folders for sintax and emu
-if [[ -z "$EMU_OUT" ]]; then
-    echo "emu output directory not provided, using default"
-    EMU_OUT="$WORK_DIR"/6_emu
-fi
+[[ -z "$POST_DEMUX_QC_OUT" ]] && { POST_DEMUX_QC_OUT="$WORK_DIR"/4_chopper_2 ; }
 
-if [[ ! -e $EMU_OUT ]]; then
-    mkdir $EMU_OUT
-fi
-
-if [[ ! -e $EMU_OUT/read_assignments ]]; then
-    mkdir $EMU_OUT/read_assignments
-fi
-
-if [[ ! -e $EMU_OUT/minimap2_aln_stats ]]; then
-    mkdir $EMU_OUT/minimap2_aln_stats
-fi
-
-if [[ -z "$SINTAX_OUT" ]]; then
-    echo "sintax output directory not provided, using default"
-    SINTAX_OUT="$WORK_DIR"/7_sintax
-fi
-
-if [[ ! -e $SINTAX_OUT ]]; then
-    mkdir $SINTAX_OUT
-fi
-
-if [[ -z "$LACA_OUT" ]]; then
-    echo "LACA output directory not provided, using default"
-    LACA_OUT="$WORK_DIR"/5_laca
-fi
+[[ -z "$LACA_OUT" ]] && { LACA_OUT="$WORK_DIR"/5_laca ; }
+[[ -z "$EMU_OUT" ]] && { EMU_OUT="$WORK_DIR"/6_emu ; echo "emu output directory not provided, using default 6_emu" ; }
+[[ -z "$SINTAX_OUT" ]] && { SINTAX_OUT="$WORK_DIR"/7_sintax ; echo "sintax output directory not provided, using default 7_sintax" ; }
+[[ ! -e $EMU_OUT ]] && { mkdir $EMU_OUT ; }
+[[ ! -e $EMU_OUT/read_assignments ]] && { mkdir $EMU_OUT/read_assignments ; }
+[[ ! -e $EMU_OUT/minimap2_aln_stats ]] && { mkdir $EMU_OUT/minimap2_aln_stats ; }
+[[ ! -e $SINTAX_OUT ]] && { mkdir $SINTAX_OUT ; }
 
 #### if using the provided databases and they are still zipped then unzip them 
-if [[ -e $DATABASE_DIR/sintax_db.fasta.gz ]]; then
-    cd $DATABASE_DIR
-    gunzip *.gz
-fi
-
-
+[[ -e $DATABASE_DIR/sintax_db.fasta.gz ]] && { cd $DATABASE_DIR ; gunzip *.gz ; }
 
 cd $WORK_DIR/slurm_scripts
 ### Write the necessary slurm scripts
@@ -157,20 +131,20 @@ cat << EOF > 6_emu_slurm.sh
 cd $EMU_OUT
 ENV_DIR=$ENV_DIR
 EMU_OUT=$EMU_OUT
-READ_DIR=$WORK_DIR/4_chopper_2
+READ_DIR=$POST_DEMUX_QC_OUT
 EMU_DB=$EMU_DB
 THREADS=$EMU_THREADS
 EOF
 
 if [ $CONDA == "conda" ]; then
-    echo 'eval "$(conda shell hook --shell bash)"' >> EMU_slurm.sh
-    echo "source activate $ENV_DIR/taxonomy-env" >> EMU_slurm.sh
+    echo 'eval "$(conda shell hook --shell bash)"' >> 6_emu_slurm.sh
+    echo "source activate $ENV_DIR/taxonomy-env" >> 6_emu_slurm.sh
 elif [ $CONDA == "mamba" ]; then
-    echo 'eval "$(mamba shell hook --shell bash)"' >> EMU_slurm.sh
-    echo "mamba activate $ENV_DIR/taxonomy-env" >> EMU_slurm.sh
+    echo 'eval "$(mamba shell hook --shell bash)"' >> 6_emu_slurm.sh
+    echo "mamba activate $ENV_DIR/taxonomy-env" >> 6_emu_slurm.sh
 elif [ $CONDA == "micromamba" ]; then
-    echo 'eval "$(micromamba shell hook --shell bash)"' >> EMU_slurm.sh
-    echo "micromamba activate $ENV_DIR/taxonomy-env" >> EMU_slurm.sh
+    echo 'eval "$(micromamba shell hook --shell bash)"' >> 6_emu_slurm.sh
+    echo "micromamba activate $ENV_DIR/taxonomy-env" >> 6_emu_slurm.sh
 fi
 
 cat << 'EOF' >> 6_emu_slurm.sh
@@ -224,20 +198,20 @@ cat << EOF > 7_sintax_slurm.sh
 cd $SINTAX_OUT
 ENV_DIR=$ENV_DIR
 SINTAX_OUT=$SINTAX_OUT
-READ_DIR=$WORK_DIR/4_chopper_2
+READ_DIR=$POST_DEMUX_QC_OUT
 SINTAX_DB=$SINTAX_DB
 
 EOF
 
 if [ $CONDA == "conda" ]; then
-    echo 'eval "$(conda shell hook --shell bash)"' >> Sintax_slurm.sh
-    echo "source activate $ENV_DIR/taxonomy-env" >> Sintax_slurm.sh
+    echo 'eval "$(conda shell hook --shell bash)"' >> 7_sintax_slurm.sh
+    echo "source activate $ENV_DIR/taxonomy-env" >> 7_sintax_slurm.sh
 elif [ $CONDA == "mamba" ]; then
-    echo 'eval "$(mamba shell hook --shell bash)"' >> Sintax_slurm.sh
-    echo "mamba activate $ENV_DIR/taxonomy-env" >> Sintax_slurm.sh
+    echo 'eval "$(mamba shell hook --shell bash)"' >> 7_sintax_slurm.sh
+    echo "mamba activate $ENV_DIR/taxonomy-env" >> 7_sintax_slurm.sh
 elif [ $CONDA == "micromamba" ]; then
-    echo 'eval "$(micromamba shell hook --shell bash)"' >> Sintax_slurm.sh
-    echo "micromamba activate $ENV_DIR/taxonomy-env" >> Sintax_slurm.sh
+    echo 'eval "$(micromamba shell hook --shell bash)"' >> 7_sintax_slurm.sh
+    echo "micromamba activate $ENV_DIR/taxonomy-env" >> 7_sintax_slurm.sh
 fi
 
 
@@ -290,14 +264,14 @@ SINTAX_DB=$SINTAX_DB
 EOF
 
 if [ $CONDA == "conda" ]; then
-    echo 'eval "$(conda shell hook --shell bash)"' >> Sintax_OTU_slurm.sh
-    echo "source activate $ENV_DIR/taxonomy-env" >> Sintax_OTU_slurm.sh
+    echo 'eval "$(conda shell hook --shell bash)"' >> 7_sintax_OTU_slurm.sh
+    echo "source activate $ENV_DIR/taxonomy-env" >> 7_sintax_OTU_slurm.sh
 elif [ $CONDA == "mamba" ]; then
-    echo 'eval "$(mamba shell hook --shell bash)"' >> Sintax_OTU_slurm.sh
-    echo "mamba activate $ENV_DIR/taxonomy-env" >> Sintax_OTU_slurm.sh
+    echo 'eval "$(mamba shell hook --shell bash)"' >> 7_sintax_OTU_slurm.sh
+    echo "mamba activate $ENV_DIR/taxonomy-env" >> 7_sintax_OTU_slurm.sh
 elif [ $CONDA == "micromamba" ]; then
-    echo 'eval "$(micromamba shell hook --shell bash)"' >> Sintax_OTU_slurm.sh
-    echo "micromamba activate $ENV_DIR/taxonomy-env" >> Sintax_OTU_slurm.sh
+    echo 'eval "$(micromamba shell hook --shell bash)"' >> 7_sintax_OTU_slurm.sh
+    echo "micromamba activate $ENV_DIR/taxonomy-env" >> 7_sintax_OTU_slurm.sh
 fi
 
 
