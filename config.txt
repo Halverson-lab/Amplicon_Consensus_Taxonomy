@@ -158,13 +158,13 @@ SINTAX_JOB_TIME= #if empty, defaults to 3 hours per library
 
 ################################### Generate Consensus Parameters ###################################
 # Assignments with a confidence below this will be set to NA for that level
-NA_THRESHOLD=0.1
+NA_THRESHOLD=0.3
 
 # number of cores to request and use for parallel work in R
 N_CORE=8
 
 # Slurm resources for generate consensus
-CONS_JOB_TIME=4  # hours
+CONS_JOB_TIME=  # hours, leave blank for default of 2 hours per library
 CONS_THREADS=16  # should be at least 2 greater than N_CORE
 
 
