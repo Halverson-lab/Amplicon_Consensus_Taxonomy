@@ -25,10 +25,9 @@ BARCODE_SEQUENCE=({1..72})
 QC_THREADS=16
 
 ### Base quality filtering pre-demultiplexing ###
-# TRUE to run filtering, FALSE to skip this step
-PRE_DEMUX_QC=TRUE
-#default folder, change if providing already filtered reads
-PRE_DEMUX_QC_OUT=2_chopper_1
+#Output folder, change if providing already filtered reads. If empty, defaults to 2_chopper_1
+PRE_DEMUX_QC_OUT=
+QC1_JOB_TIME=4
 # NanoFilt parameters for filtering before demultiplexing
 LOOSE_MIN_LENGTH=800
 LOOSE_MAX_LENGTH=4000
@@ -36,9 +35,8 @@ LOOSE_MIN_Q=12
 
 
 ### Demultiplexing parameters ###
-# TRUE to run demultiplexing, FALSE to skip this step. If false then provide the path to the demultiplexed sequences in DEMUX_OUT.
-DEMUX=TRUE
-DEMUX_OUT=3_Demultiplex
+#Provide the path to the demultiplexed sequences in DEMUX_OUT, if empty then default is 3_Demultiplex.
+DEMUX_OUT=
 BARCODE_FILE=/path/to/dir/Amplicon_Consensus_Taxonomy/barcodes.fasta
 
 # Minimum barcode overlap for cutadapt
@@ -51,10 +49,10 @@ DEMUX_JOB_TIME=6
 
 
 ### Quality control and filtering post demultiplxing ###
-# TRUE to run filtering, FALSE to skip this step. If false then provide the path to the final sequences in POST_DEMUX_QC_OUT.
-POST_DEMUX_QC=TRUE
-POST_DEMUX_QC_OUT=4_chopper_2 
-
+# Output directory, leave empty for default of 4_chopper_2
+# if providing already filtered and demultiplexed sequences then provide the path to said sequences.
+POST_DEMUX_QC_OUT=
+QC2_JOB_TIME= # leave empty for default of 1 hour per library
 # NanoFilt parameters for filtering after demultiplexing
 # If you have more than one set of amplicon lengths then put TRUE in MULTI_LENGTH and list filtering parameters for each set
 MULTI_LENGTH=FALSE
