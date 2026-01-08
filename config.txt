@@ -21,53 +21,24 @@ BARCODES=72
 BARCODE_SEQUENCE=({1..72})
 
 ################################### QC and Demux Parameters ###################################
-# CPUs/Threads
+# CPUs/Threads for slurm jobs for the follwoing steps
 QC_THREADS=16
 
+### Base quality filtering pre-demultiplexing ###
+# TRUE to run filtering, FALSE to skip this step
+PRE_DEMUX_QC=TRUE
+#default folder, change if providing already filtered reads
+PRE_DEMUX_QC_OUT=2_chopper_1
 # NanoFilt parameters for filtering before demultiplexing
 LOOSE_MIN_LENGTH=800
 LOOSE_MAX_LENGTH=4000
 LOOSE_MIN_Q=12
 
-# NanoFilt parameters for filtering after demultiplexing
 
-# If you have one set of amplicon lengths then put false in MULTI_LENGTH and just fill in the strict parameters
-MULTI_LENGTH=TRUE
-
-STRICT_MIN_LENGTH=1300
-STRICT_MAX_LENGTH=1700
-STRICT_MIN_Q=15
-
-# If you have multiple amplicon lengths then list parameters for each set using the format below. You can list as many sets as you need, but they must be named in numerical order (i.e. set_1, set_2, set_3)
-# Number of different amplicon lengths
-NUM_OF_AMPLICON_SETS=3
-
-# Samples in set 1, barcodes 1-5 in library 1
-LIB_SET_1=1
-BARCODE_SET_1=({1..5})
-
-MIN_1=1200
-MAX_1=1400
-MINQ_1=15
-
-# Samples in set 2, barcodes 7,9,10,13 in library 1
-LIB_SET_2=2
-BARCODE_SET_2=(7 9 10 13)
-
-MIN_2=800
-MAX_2=1000
-MINQ_2=14
-
-# Samples in set 3, barcodes 13-15 in library 1 and 2
-LIB_SET_3=({1..3})
-BARCODE_SET_3=({13..15})
-
-MIN_3=900
-MAX_3=1300
-MINQ_3=12
-
-
-# cutadapt parameters
+### Demultiplexing parameters ###
+# TRUE to run demultiplexing, FALSE to skip this step. If false then provide the path to the demultiplexed sequences in DEMUX_OUT.
+DEMUX=TRUE
+DEMUX_OUT=3_Demultiplex
 BARCODE_FILE=/path/to/dir/Amplicon_Consensus_Taxonomy/barcodes.fasta
 
 # Minimum barcode overlap for cutadapt
@@ -79,6 +50,47 @@ BARCODE_ERROR=1
 DEMUX_JOB_TIME=6 
 
 
+### Quality control and filtering post demultiplxing ###
+# TRUE to run filtering, FALSE to skip this step. If false then provide the path to the final sequences in POST_DEMUX_QC_OUT.
+POST_DEMUX_QC=TRUE
+POST_DEMUX_QC_OUT=4_chopper_2 
+
+# NanoFilt parameters for filtering after demultiplexing
+# If you have more than one set of amplicon lengths then put TRUE in MULTI_LENGTH and list filtering parameters for each set
+MULTI_LENGTH=FALSE
+
+# Parameters for one set of amplicons
+STRICT_MIN_LENGTH=1300
+STRICT_MAX_LENGTH=1700
+STRICT_MIN_Q=15
+
+# If you have multiple amplicon lengths then list parameters for each set following the example format below. You can list as many sets as you need, but they must be named in numerical order (i.e. set_1, set_2, set_3)
+# Number of different amplicon lengths
+NUM_OF_AMPLICON_SETS=3
+
+# Samples in set 1, barcodes 1-5 in library 1
+LIB_SET_1=1
+BARCODE_SET_1=({1..5})
+MIN_1=1200
+MAX_1=1400
+MINQ_1=15
+
+# Samples in set 2, barcodes 7,9,10,13 in library 1
+LIB_SET_2=2
+BARCODE_SET_2=(7 9 10 13)
+MIN_2=800
+MAX_2=1000
+MINQ_2=14
+
+# Samples in set 3, barcodes 13-15 in library 1 and 2
+LIB_SET_3=({1..3})
+BARCODE_SET_3=({13..15})
+MIN_3=900
+MAX_3=1300
+MINQ_3=12
+
+
+
 ################################### Database Parameters ###################################
 # Users can use the provided database or modify it
 # if you wish to make a modified database and keep the original then make a copy and rename it
@@ -87,7 +99,7 @@ DATABASE_DIR=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases
 # URL of the latest rrnDB
 RRNDB=https://rrndb.umms.med.umich.edu/downloads/rrnDB-5.9_16S_rRNA.fasta.zip
 
-#### Files for building a custom database
+#### Files for building a custom database ####
 # If using a sintax/UNITE formatted database then only USER_SEQ needs to be provided. 
 # fasta file of sequences to be added
 BUILD_USER_SEQ=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases/new_seq.fasta
@@ -101,7 +113,7 @@ BUILD_USER_SEQ2TAX=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases/n
 BUILD_USER_TAX=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases/new_taxids.tsv
 
 
-#### Files for adding user provided reads to the current database
+#### Files for adding user provided reads to the current database ####
 # fasta file of sequences to be added
 ADD_USER_SEQ=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases/new_seq.fasta
 
@@ -115,7 +127,7 @@ ADD_USER_TAX=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases/new_tax
 # Will retrieve the annotated 16S genes from the assembled genome
 ACC_LIST=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases/accessions_list.txt
 
-#### Database grouping parameter
+#### Database grouping parameter ####
 # Similarity threshold for identify if two sequences are too similar to each other for nanopore to differentiate
 # Default threshold is 0.005, so if two reads are >99.5% identical they will be grouped 
 SIM_THRESH=0.005
@@ -123,10 +135,10 @@ SIM_THRESH=0.005
 
 # LACA Parameters
 LACA_DIR=/path/to/dir/Amplicon_Consensus_Taxonomy/laca
-MAX_JOBS=64 #max LACA will use for one task
-SLURM_MAX_CPUS=128 #Must be greater than MAX_JOBS. Depends on number of reads but more will speed up the slower parts signifcantly
+MAX_JOBS=64  # max LACA will use for one task
+SLURM_MAX_CPUS=128  # Must be greater than MAX_JOBS. Depends on number of reads but more will speed up the slower parts signifcantly
 SLURM_MAX_MEM=500G
-LACA_JOB_TIME=7 #Number of days, (more reads = more time)
+LACA_JOB_TIME=7  # Number of days, (more reads = more time)
 # Directory for laca output, if empty then default is $WORK_DIR/5_laca
 LACA_OUT=/path/to/dir/Amplicon_Consensus_Taxonomy/5_laca
 
@@ -135,6 +147,7 @@ EMU_DB=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases
 # Directory for emu output, if empty then default is $WORK_DIR/6_emu
 EMU_OUT=/path/to/dir/Amplicon_Consensus_Taxonomy/6_emu
 EMU_THREADS=32
+EMU_JOB_TIME= #if empty, defaults to 3 hours per library
 
 
 # Sintax Parameters
@@ -142,20 +155,19 @@ SINTAX_DB=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases/sintax_db.
 # Directory for sintax output, if empty then default is $WORK_DIR/7_sintax
 SINTAX_OUT=/path/to/dir/Amplicon_Consensus_Taxonomy/7_sintax
 SINTAX_THREADS=32
-
+SINTAX_JOB_TIME= #if empty, defaults to 3 hours per library
 
 
 ################################### Generate Consensus Parameters ###################################
-# Does the experiment use known organisms? Answer TRUE or FALSE
-KNOWN_ORG=FALSE
-
-# If sample includes known organisms the include a tsv of column labeled species, containing species name with taxid of each member of the syncom 
-# species names must match the format of genus_species_taxid, for example "Pseudomonas_putida_303"
-KNOWN_ORG_SPECIES=/path/to/dir/Amplicon_Consensus_Taxonomy/sample_info/known_org_species_list.tsv
-KNOWN_ORG_SAMPLES=/path/to/dir/Amplicon_Consensus_Taxonomy/sample_info/known_org_sample_list.tsv
-
 # Assignments with a confidence below this will be set to NA for that level
 NA_THRESHOLD=0.1
 
-#number of cores to request and use for parallel work in R
+# number of cores to request and use for parallel work in R
 N_CORE=8
+
+# Slurm resources for generate consensus
+CONS_JOB_TIME=4  # hours
+CONS_THREADS=16  # should be at least 2 greater than N_CORE
+
+
+
