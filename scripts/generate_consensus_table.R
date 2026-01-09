@@ -16,39 +16,19 @@ path_to_data_dir <- Sys.getenv("DATABASE_DIR")
 if (!str_ends(path_to_data_dir, "/")){ path_to_data_dir <- paste0(path_to_data_dir, "/")}
 
 NA_thresh <- Sys.getenv("NA_THRESHOLD")
-
 n_cores <- as.numeric(Sys.getenv("N_CORE"))
 
 #Number of libraries
 lib_num <- Sys.getenv("LIBRARY")
-#list of names of all barcodes
-barcode_list <- scan(paste0(path_to_work_dir,"barcode_names.txt"), what="", sep="\n")
-
-contains_known_orgs <- Sys.getenv("KNOWN_ORG")
-
-if(contains_known_orgs == TRUE){
-  path_known_orgs <- Sys.getenv("KNOWN_ORG_SPECIES")
-  # If sample includes added organisms the include a tsv of column labeled species, containing species name with taxid of each 
-  # species names must match format if genus_species_taxid, for example "Pseudomonas_putida_303"
-  known_orgs_df <- read_tsv(path_known_orgs)
-  known_orgs_list <- known_orgs_df$species
-  
-  # additionally include a 2 colum csv
-  path_known_orgs_samples <- Sys.getenv("KNOWN_ORG_SAMPLES")
-  known_orgs_samples <- read_csv(path_known_orgs_samples)
-  known_orgs_samples <- column_to_rownames(known_orgs_samples, var = "barcode")
-} else {
-  known_orgs_samples <- as.data.frame(barcode_list)
-  known_orgs_samples$known_orgs_added <- F
-  known_orgs_samples <- column_to_rownames(known_orgs_samples, var = "barcode_list")
-}
-
+#list of names of all samples
+sample_list <- scan(paste0(path_to_work_dir,"sample_names.txt"), what="", sep="\n")
 
 # file path to the emu and sintax outputs
 emu_path <- Sys.getenv("EMU_OUT")
 sintax_path <- Sys.getenv("SINTAX_OUT")
 laca_path <- Sys.getenv("LACA_OUT")
 
+# if path doesn't end with / then add one
 if (!str_ends(emu_path, "/")){ emu_path <- paste0(emu_path, "/")}
 if (!str_ends(sintax_path, "/")){ sintax_path <- paste0(sintax_path, "/")}
 if (!str_ends(laca_path, "/")){ laca_path <- paste0(laca_path, "/")}
@@ -56,13 +36,10 @@ if (!str_ends(laca_path, "/")){ laca_path <- paste0(laca_path, "/")}
 
 # Read in the seqID to OTU table you generated
 otu_df <- read_tsv(paste0(laca_path, "quant/seqID_to_otu.tsv"))
-
 # Read in the taxonomy assignments for the otus
 otu_taxonomy_df <- read_tsv(paste0(laca_path, "OTU_sintax.tsv"), col_names = FALSE)
-
 # Read in EMU's taxonomy table for reference
 raw_taxon_table <- read_tsv(paste0(path_to_data_dir,"taxonomy.tsv"), col_types = cols(.default = "c"))
-
 
 
 #### Format dataframes, including the taxonomy dataframes. Do not edit, unless absolutely necessary ####
@@ -112,9 +89,7 @@ otu_taxonomy <- otu_taxonomy %>%
 
 #### Function to combine emu and sintax output, you can choose to edit thresholds if necessary ##
 combine_taxonomy <- function(sample_id, sintax_df, emu_df, minimap_df){
-  # Are there added orgs? 
-  known_orgs <- known_orgs_samples[sample_id, 1]
-  if(is.na(known_orgs)){known_orgs = FALSE} #if gnoto is empty then assign false
+
   
   #### Format sintax ####
   colnames(sintax_df) <- c("read_id", "taxon_CI", "strand", "final_taxa")
@@ -161,18 +136,16 @@ combine_taxonomy <- function(sample_id, sintax_df, emu_df, minimap_df){
     select(-c(max_AS, min_NM)) %>%
     separate_wider_delim(RNAME, delim = ":", names = c("taxid", "database", "seq_num")) %>%
     mutate(taxid = if_else(is.na(taxid), NA, paste0("taxid_", taxid)))
-
-
-  #multipdlyr if nrows is greater than n_cores*1000
-  if(nrow(minimap_df_trim) > (n_cores*1000)){
+  
     #subset the taxonomy to only include the taxids needed, significantly speeds up working with large taxonomies
     minimap_tax_list <- unique(minimap_df_trim$taxid)
     minimap_emu_taxid_taxonomy <- emu_taxid_taxonomy[minimap_tax_list,]
+  #multipdlyr if nrows is greater than n_cores*1000
+  if(nrow(minimap_df_trim) > (n_cores*1000)){
     cluster_assign(cluster, minimap_emu_taxid_taxonomy = minimap_emu_taxid_taxonomy)
-  
     #partition the dataframe between clusters
     minimap_part <- minimap_df_trim %>% group_by(taxid) %>% partition(cluster)
-  
+    
     minimap_with_tax <- minimap_part %>%
       mutate(
         domain = if_else(is.na(taxid), NA, minimap_emu_taxid_taxonomy[as.character(taxid), "domain"]), #check if the taxid is NA, otherwise get the corresponding taxonomy from the taxonomy table
@@ -194,7 +167,7 @@ combine_taxonomy <- function(sample_id, sintax_df, emu_df, minimap_df){
         genus = if_else(is.na(taxid), NA, minimap_emu_taxid_taxonomy[as.character(taxid), "genus"]),
         species = if_else(is.na(taxid), NA, minimap_emu_taxid_taxonomy[as.character(taxid), "species"])) 
   }
-
+  
   
   ## if it scores equally well for 2+ diff species then species can't be assigned
   #keep top scoring assignment for each  
@@ -254,7 +227,7 @@ combine_taxonomy <- function(sample_id, sintax_df, emu_df, minimap_df){
     }
     
   }
-
+  
   
   minimap_final <- minimap_final %>%
     select(-c(min_N_MISMATCH, max_AS, min_NM, AS, NM, CINS, CDEL, n)) %>%
@@ -277,13 +250,27 @@ combine_taxonomy <- function(sample_id, sintax_df, emu_df, minimap_df){
   #subset the taxonomy to only include the taxids needed, significantly speeds up working with large taxonomies
   emu_tax_list <- unique(emu_long$emu_tax_id)
   subset_emu_taxid_taxonomy <- emu_taxid_taxonomy[emu_tax_list,]
-  cluster_assign(cluster, subset_emu_taxid_taxonomy = subset_emu_taxid_taxonomy)
   
-  #partition the dataframe between clusters
-  emu_part <- emu_long %>% group_by(read_id) %>% partition(cluster)
+  if(nrow(emu_long) > (n_cores*1000)){
+    cluster_assign(cluster, subset_emu_taxid_taxonomy = subset_emu_taxid_taxonomy)
+    #partition the dataframe between clusters
+    emu_part <- emu_long %>% group_by(read_id) %>% partition(cluster)
   
-  ## Add in emu taxonomy
-  emu_with_taxon <- emu_part %>%
+    ## Add in emu taxonomy
+    emu_with_taxon <- emu_part %>%
+      mutate(
+        domain = if_else(is.na(emu_tax_id), NA, subset_emu_taxid_taxonomy[as.character(emu_tax_id), "domain"]), #check if the taxid is NA, otherwise get the corresponding taxonomy from the taxonomy table
+        phylum = if_else(is.na(emu_tax_id), NA, subset_emu_taxid_taxonomy[as.character(emu_tax_id), "phylum"]),
+        class = if_else(is.na(emu_tax_id), NA, subset_emu_taxid_taxonomy[as.character(emu_tax_id), "class"]),
+        order = if_else(is.na(emu_tax_id), NA, subset_emu_taxid_taxonomy[as.character(emu_tax_id), "order"]),
+        family = if_else(is.na(emu_tax_id), NA, subset_emu_taxid_taxonomy[as.character(emu_tax_id), "family"]),
+        genus = if_else(is.na(emu_tax_id), NA, subset_emu_taxid_taxonomy[as.character(emu_tax_id), "genus"]),
+        species = if_else(is.na(emu_tax_id), NA, subset_emu_taxid_taxonomy[as.character(emu_tax_id), "species"])
+      ) %>%
+      select(-c(n, emu_max_CI, emu_tax_id)) %>% #remove these columns
+      collect() 
+  } else {
+    emu_with_taxon <- emu_long %>%
     mutate(
       domain = if_else(is.na(emu_tax_id), NA, subset_emu_taxid_taxonomy[as.character(emu_tax_id), "domain"]), #check if the taxid is NA, otherwise get the corresponding taxonomy from the taxonomy table
       phylum = if_else(is.na(emu_tax_id), NA, subset_emu_taxid_taxonomy[as.character(emu_tax_id), "phylum"]),
@@ -293,8 +280,9 @@ combine_taxonomy <- function(sample_id, sintax_df, emu_df, minimap_df){
       genus = if_else(is.na(emu_tax_id), NA, subset_emu_taxid_taxonomy[as.character(emu_tax_id), "genus"]),
       species = if_else(is.na(emu_tax_id), NA, subset_emu_taxid_taxonomy[as.character(emu_tax_id), "species"])
     ) %>%
-    select(-c(n, emu_max_CI, emu_tax_id)) %>% #remove these columns
-    collect() 
+    select(-c(n, emu_max_CI, emu_tax_id))
+  }
+  
   
   emu_with_taxon <- emu_with_taxon %>%
     left_join(otu_df, by = "read_id") %>% #join to the otu dataframe
@@ -324,37 +312,18 @@ combine_taxonomy <- function(sample_id, sintax_df, emu_df, minimap_df){
   # so 10110 means sintax = emu = minimap
   
   # decision tree
-  # the different paths account for the fact that EMU is more accurate in systems containing known members, due to their expectation maximization algorithm
-  
-  if(contains_known_orgs){
-    all_assignments <- all_assignments %>%
-      mutate(final_taxon = case_when((comp_flags == 111111) ~ sintax, #all equal so pick one,
-                                     (emu %in% known_orgs_list) ~ emu,
-                                     (sintax_CI <= NA_thresh) ~ NA, # sintax has low CI then NA
-                                     (comp_flags %in% c(10, 100, 1011, 10110, 100101)) ~ sintax, #sintax=emu, sintax=minimap, sintax=otu=emu, sintax=emu=minimap, sintax=otu=minimap
-                                     (comp_flags == 111000) ~ emu, #emu=otu=minimap
-                                     (comp_flags %in% c(0, 1100, 100000)) & (percent_match > 0.99) & (percent_mismatch < 0.01) ~ minimap, #minimap has a really good match,
-                                     (comp_flags %in% c(1000, 1100)) & (otu_taxa_CI > NA_thresh) ~ emu, #emu = otu and minimap doesn't pass previous threshold
-                                     is.na(emu) & is.na(minimap) & (sintax == otu_taxa) ~ sintax,
-                                     is.na(emu) & is.na(minimap) & (sintax != otu_taxa) & (sintax_CI > otu_taxa_CI ) ~ sintax,
-                                     is.na(emu) & is.na(minimap) & (sintax != otu_taxa) & (sintax_CI < otu_taxa_CI ) ~ otu_taxa,
-                                     is.na(emu) & is.na(minimap) & is.na(otu_taxa) & (sintax_CI > 0.9) ~ sintax,
-                                     .default = NA))
-  }else{
-    all_assignments <- all_assignments %>%
-      mutate(final_taxon = case_when((comp_flags == 111111) ~ sintax, #all equal so pick one,
-                                     #(emu %in% known_orgs_list) ~ emu,
-                                     (sintax_CI <= NA_thresh) ~ NA, # sintax has low CI then NA
-                                     (comp_flags %in% c(10, 100, 1011, 10110, 100101)) ~ sintax, #sintax=emu, sintax=minimap, sintax=otu=emu, sintax=emu=minimap, sintax=otu=minimap
-                                     (comp_flags == 111000) ~ emu, #emu=otu=minimap
-                                     (comp_flags %in% c(0, 1100, 100000)) & (percent_match > 0.99) & (percent_mismatch < 0.01) ~ minimap, #minimap has a really good match,
-                                     (comp_flags %in% c(1000, 1100)) & (otu_taxa_CI > NA_thresh) ~ emu, #emu = otu and minimap doesn't pass previous threshold
-                                     is.na(emu) & is.na(minimap) & (sintax == otu_taxa) ~ sintax,
-                                     is.na(emu) & is.na(minimap) & (sintax != otu_taxa) & (sintax_CI > otu_taxa_CI ) ~ sintax,
-                                     is.na(emu) & is.na(minimap) & (sintax != otu_taxa) & (sintax_CI < otu_taxa_CI ) ~ otu_taxa,
-                                     is.na(emu) & is.na(minimap) & is.na(otu_taxa) & (sintax_CI > 0.9) ~ sintax,
-                                     .default = NA))
-  }
+  all_assignments <- all_assignments %>%
+    mutate(final_taxon = case_when((comp_flags == 111111) ~ sintax, #all equal so pick one,
+                                   (sintax_CI <= NA_thresh) ~ NA, # sintax has low CI then NA
+                                   (comp_flags %in% c(10, 100, 1011, 10110, 100101)) ~ sintax, #sintax=emu, sintax=minimap, sintax=otu=emu, sintax=emu=minimap, sintax=otu=minimap
+                                   (comp_flags == 111000) ~ emu, #emu=otu=minimap
+                                   (percent_match > 0.995) & (percent_mismatch < 0.005) ~ minimap, #minimap has a really good match,
+                                   (comp_flags %in% c(1000, 1100)) & (otu_taxa_CI > NA_thresh) ~ emu, #emu = otu and minimap doesn't pass previous threshold
+                                   is.na(emu) & is.na(minimap) & (sintax == otu_taxa) ~ sintax,
+                                   is.na(emu) & is.na(minimap) & (sintax != otu_taxa) & (sintax_CI > otu_taxa_CI ) ~ sintax,
+                                   is.na(emu) & is.na(minimap) & (sintax != otu_taxa) & (sintax_CI < otu_taxa_CI ) ~ otu_taxa,
+                                   is.na(emu) & is.na(minimap) & is.na(otu_taxa) & (sintax_CI > 0.9) ~ sintax,
+                                   .default = NA))
   
   #pivot out and keep the lowest level that's not NA then assign taxid to that level
   final_assignments <- all_assignments %>%
@@ -381,7 +350,7 @@ combine_taxonomy <- function(sample_id, sintax_df, emu_df, minimap_df){
     summarize(read_counts = n()) %>% #summarize to reduce table size
     mutate(sample_id = sample_id) %>% #add column identifying the sample id
     separate_wider_regex(lowest_taxon, c(lowest_taxon = ".*", "_", lowest_taxid = ".*")) #split lowest taxon into name and taxid
-
+  
   return(final_assignments)
 }
 
@@ -399,8 +368,6 @@ cluster <- new_cluster(n_cores-1)
 #pass tidyverse and the emu_taxid_taxonomy table to every cluster
 cluster_library(cluster, "tidyverse")
 
-#list all possible library and barcode combos
-sample_list <- as.vector(outer(c(1:lib_num), barcode_list, paste, sep="_"))
 #initialize empty dataframe
 sample_id_df <- data.frame()
 
@@ -478,4 +445,4 @@ final_taxid_table <- sample_id_df_otu_comp %>%
   pivot_wider(names_from = sample_id, values_from = counts, values_fill = 0)
 
 #save the table
-write_tsv(final_taxid_table, "abundance_table.tsv", col_names = T, eol = "\n")
+write_tsv(final_taxid_table, "abundance_table_with.tsv", col_names = T, eol = "\n")
