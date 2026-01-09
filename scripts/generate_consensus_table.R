@@ -445,4 +445,4 @@ final_taxid_table <- sample_id_df_otu_comp %>%
   pivot_wider(names_from = sample_id, values_from = counts, values_fill = 0)
 
 #save the table
-write_tsv(final_taxid_table, "abundance_table_with.tsv", col_names = T, eol = "\n")
+write_tsv(final_taxid_table, "abundance_table.tsv", col_names = T, eol = "\n")
