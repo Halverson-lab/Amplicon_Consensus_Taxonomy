@@ -216,6 +216,7 @@ cat << EOF > 3_Demux_slurm.sh
 
 cd $DEMUX_OUT
 
+THREADS=$QC_THREADS
 WORK_DIR=$WORK_DIR
 READ_DIR=$PRE_DEMUX_QC_OUT
 BARCODE_FILE=$BARCODE_FILE
@@ -235,10 +236,15 @@ elif [ $CONDA == "micromamba" ]; then
     echo "micromamba activate $ENV_DIR/cutadapt-env" >> 3_Demux_slurm.sh
 fi
 
-cat << 'EOF' >> 3_Demux_slurm.sh
-cutadapt --revcomp --overlap $BARCODE_OVERLAP -j 16 -e $BARCODE_ERROR -a file:"${BARCODE_FILE}" -o "${SLURM_ARRAY_TASK_ID}"_{name}.fastq.gz $READ_DIR/"${SLURM_ARRAY_TASK_ID}"_filt.fastq.gz
-
+if [ $REQ_BOTH == "TRUE" ]; then
+    cat << 'EOF' >> 3_Demux_slurm.sh
+cutadapt --revcomp -j $THREADS -e $BARCODE_ERROR -g file:"${BARCODE_FILE}" -o "${SLURM_ARRAY_TASK_ID}"_{name}.fastq.gz $READ_DIR/"${SLURM_ARRAY_TASK_ID}"_*
 EOF
+else
+    cat << 'EOF' >> 3_Demux_slurm.sh
+cutadapt --revcomp --overlap $BARCODE_OVERLAP -j $THREADS -e $BARCODE_ERROR -a file:"${BARCODE_FILE}" -o "${SLURM_ARRAY_TASK_ID}"_{name}.fastq.gz $READ_DIR/"${SLURM_ARRAY_TASK_ID}"_*
+EOF
+fi
 
 
 ################################################ Second round of filtering, post-demux ################################################
