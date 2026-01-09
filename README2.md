@@ -62,10 +62,7 @@ ATCCGGTCGGAGA...TCTCCGACCGGAT
 
 **Users with reads that are already demultiplexed and trimmed of adapters/barcodes** need to address the following:
 
-2. All reads should be placed in a single folder and the path to that folder should be added into the `config.txt` file under `POST_DEMUX_QC_OUT=`. Reads can be fastq or fastq.gz files and should be named in library_barcode format. Libraries should start at 1, see [earlier description](#modify-the-necessary-files). Barcodes can contain any information desired, but must end with a number in three-digit format (e.g., 001, 002, …) for ACT to run properly. For example, `1_experiment_A_barcode_003.fastq` and `2_BR010.fastq.gz` are both valid but `1_experiment2_barcode_2.fastq` is not.
-
-# add details here about how to set thing up for starting with pre-processed reads
-</br>  
+2. All reads should be placed in a single folder and the path to that folder should be added into the `config.txt` file under `DEMUX_OUT=`. Reads can be fastq or fastq.gz files and should be named in library_barcode format. Libraries should start at 1, see [earlier description](#2-modify-the-necessary-files). Barcodes can contain any information desired, but must end with a number in three-digit format (e.g., 001, 002, …) for ACT to run properly. For example, `1_experiment_A_barcode_003.fastq` and `2_BR010.fastq.gz` are both valid but `1_experiment2_barcode_2.fastq` is not.
 
 ### 3. Build conda environments
 Execution of the `environment_setup.sh` script builds all of the necessary conda environments for running ACT. Most of these environments will be saved in the `envs` directory. You will need to input "Y" several times to confirm the installation. Users may receive a pip warning regarding the `LACA` installation, but this warning can be disregarded. 
@@ -87,10 +84,7 @@ conda activate ACT-env
 ```
 
 ## PREPARATION OF SEQUENCING READS
-# this section needs to be modified to explain how users with pre-processed reads can perform strict filtering only
-
-
-### 4. Read QC for optimizing filtering settings.
+### 4. Inspecting reads for optimizing filtering settings.
 Filtering parameters should be tailored to your read set. Begin by inspecting your reads with your preferred tool. An optional script for running [NanoPlot](https://github.com/wdecoster/NanoPlot) is included, as that is our recommended tool.
 
 Determine quality score and length cutoffs based on your read distribution and expected amplicon size. During initial pre-processing, loose quality and length cutoffs should retain most reads, and the maximum length should be at least twice your amplicon size to recover any reads that may have been concatenated during basecalling. Final filtering should use stricter parameters that align closely with expected amplicon length.
@@ -106,25 +100,33 @@ nanoplot_helper.sh
 ```
 
 ### 5. Read demultiplexing and filtering
-This `QC_demultiplex.sh` script performs the following three tasks in sequence:
+The `QC_demultiplex.sh` script can perform the following three tasks:
 1. Pre-processing using loose filtering parameters
 2. Demultiplexing with user-defined barcodes
 3. Strict filtering for quality and length
 
-Ensure the `QC and Demux Parameters` section of the `config.txt` file are fully populated before submitting the `QC_demultiplex.sh` script. 
+Users can choose to perform tasks individually or as a group. Ensure the `QC and Demux Parameters` section of the `config.txt` file is fully populated before submitting the `QC_demultiplex.sh` script. 
 
 **Note regarding demultiplexing parameters:**  
 The `BARCODE_OVERLAP` parameter specifies how much of the barcode must be present for the [cutadapt](https://cutadapt.readthedocs.io/en/stable/guide.html) tool to considered it valid. This value should be equal to or slightly less than the full barcode length. As a general rule: for barcodes longer than 10 bp, set BARCODE_OVERLAP to barcode length minus 1 (e.g., BARCODE_OVERLAP=12 for 13-bp barcode); for barcodes of 10 bp or less, use the full barcode length.
 
+**Users with raw, multiplexed reads** should run all steps using the `--all` flag.
+**Users with reads that are already demultiplexed and trimmed of adapters/barcodes** should only perform strict filtering using the `--qc2` flag.
 ```bash
 # run the QC_demultiplex.sh script to generate and submit the associated slurm batch scripts.
 # The slurm scripts in this portion of ACT use job dependencies so each script must run and complete before the next one starts.
+# Options:
+# -h, --help      Display this help message
+# -1, --qc1       Run QC and filtering pre-demultiplexing
+# -d, --demux     Run demultiplexing
+# -2, --qc2       Run QC and filtering post-demultiplexing
+# -a, --all       Run demultiplexing with pre- and post- filtering
 
-cd $WORK_DIR
-QC_demultiplex.sh
+# to run all of the steps
+QC_demultiplex.sh --all
 
-# If you need to re-run because a step failed, delete only the folders for failed steps and keep the successful ones.
-# The pipeline will re-run only the steps with empty folders.
+# for users with demultiplexed and trimmed reads
+QC_demultiplex.sh --qc2
 ```
 
 We recommend inspecting your reads again after this step to check for potential issues, such as excessive read loss due to filtering parameters or an unexpected number of reads per barcode. One option for this inspection is to run NanoPlot again.
@@ -149,25 +151,21 @@ Within ACT, Emu and Sintax assign taxonomy to each read, while LACA clusters rea
 # Use the laca_setup.sh script to up the files and folders for laca and generate the config file
 # Omit the '-r' flag to regenerate the config file and slurm scripts without automatically submitting the jobs
 
-cd $WORK_DIR
 laca_setup.sh -r
 
 # ensure the accuracy of the laca config.yaml file (primers, medaka version) using your preferred text editor
 
-vim $WORK_DIR/5_laca/config.yaml
+vim 5_laca/config.yaml
 ```
 
 #### 6b. Running LACA
 Once the `config.yaml` file is verified to be accurate, submit the `5_laca_run.sh` script to run LACA.
 ```
-cd $WORK_DIR/slurm_scripts
+cd slurm_scripts
 sbatch 5_laca_run.sh
-
-conda deactivate
 
 # Clustering will take a while, so you can run Emu and Sintax on your samples while it is still in progress, and then run Sintax on the OTUs once clustering is complete.
 ```
-# Does conda need to be activated to run the `laca_setup.sh` or `5_laca_run.sh` scripts? If so, that needs to be specified and added to the code blocks. If not, 'conda deactivate' should be removed.
 
 ### 7. Taxonomic assignment
 
@@ -175,7 +173,7 @@ The taxonomic assignments are done with Sintax and Emu. This step can be started
 
 ACT uses the Emu- and Sintax-formatted databases specified in the `config.txt` file. By default, ACT will use the provided sequence-similarity-aware ACT-DB 16S database. The FASTA files for ACT-DB are gzipped due to GitHub file size limits but will be automatically unzipped by the `taxonomy_assignment.sh` script. 
 
-If using an updated, modified, or custom database (see [here] for details), ensure it follows the same formatting as the provided files and that the FASTA files are unzipped, since Emu and Sintax cannot process gzipped FASTA files.
+If using an updated, modified, or custom database (see [here](#updating-and-modifying-act-db-and-building-custom-ambiguity-aware-databases) for details), ensure it follows the same formatting as the provided files and that the FASTA files are unzipped, since Emu and Sintax cannot process gzipped FASTA files.
 
 
 **WARNING:** The `-o` and `-a` flags can only be run once LACA clustering is complete, as these flags perform Sintax-based taxonomic assignment of the OTUs. If you want to start taxonomic assignments while LACA is still running, use the example command below. 
@@ -190,7 +188,6 @@ If using an updated, modified, or custom database (see [here] for details), ensu
 # -o, --otu       Run sintax on the LACA OTUs (can only be performed after LACA is finished)
 
 # If running while LACA clustering is ongoing
-cd $WORK_DIR
 taxonomy_assignment.sh -e -s
 
 # Then run taxonomic assignment of OTUs once clustering is complete
@@ -202,13 +199,11 @@ taxonomy_assignment.sh -a
 
 
 ### 8. Generate the consensus OTU tables
-# The 'Generate Consensus Parameters' section of the config.txt file needs to be modified to eliminate specification of known organisms.
+
 One clustering and taxonomic assignment are complete, the final consensus OTU table is generated using the `generate_consensus_table.R` script. For convenience, a shell script `generate_consensus.sh` is provided to simplify this process. If the pipeline has been run up to this point, all required files should alreaedy be in the proper locations and the script will handle everything automatically. Samples names in the output will use the library number combined with the numerical barcode IDs.
 
 **Note regarding 'NA' threshold for generating consensus taxonomic assignments:**  
-A critical parameter of the ACT decision tree is the Sintax 'NA' threshold. If Emu, Sintax, and OTU classifications for a read do not match and Sintax confidence falls below the NA threshold, taxonomy for that rank is withheld to avoid overclassification. The NA threshold is defined by the user in the 'Generate Consensus Parameters' section of the `config.txt` file (NA_THRESHOLD), with accepted values between **X and X**. A higher value requires greater Sintax confidence for classification. If NA_THRESHOLD is not specified, ACT will use a default value of 0.3.
-
-# Please specify the accepted value range for NA_THRESHOLD.
+A critical parameter of the ACT decision tree is the Sintax 'NA' threshold. If the Sintax confidence falls below the NA threshold, taxonomy for that rank is withheld to avoid overclassification. The NA threshold is defined by the user in the 'Generate Consensus Parameters' section of the `config.txt` file (`NA_THRESHOLD`), with accepted values between 0 and 1. A higher value requires greater Sintax confidence for classification. If NA_THRESHOLD is not specified, ACT will use a default value of 0.3.
 
 The `generate_consensus.sh` script can be run in an interactive session using the `-r` flag or submitted as a slurm script using the `-s` flag.
 
@@ -219,11 +214,12 @@ generate_consensus.sh
 # -r, --run       Run function in current session
 # -s, --slurm     Generate and submit slurm script
 ```
-# Please specify the output files generated by this script (since it's the final step)
 
+The **final output** is two abundance tables, named `abundance_table_with_OTU.tsv` and `abundance_table.tsv`, and one taxonomy file. Both abundance tables have sample ids as the column names and taxid as the row names, the difference lies in what is included in said taxid. The abundance table with OTU has the OTU appended to the taxid where possible (e.g. taxid_286_OTU_4 would designate _Pseudomonas_ OTU 4) while the plain abundance table does not include OTU. The last file is an updated taxonomy table that matches the taxid_OTU designations included in `abundance_table_with_OTU.tsv`. 
 
 
 ## TROUBLESHOOTING TIPS
+
 Most ACT scripts will generate and automatically submit slurm batch scripts. All generated scripts are stored in the `slurm_scripts` directory. These slurm scripts are configured to notify users via the email specified in the `config.txt` file when the job finishes or fails. If a job array exits with a mixed signal, you can use the following command to identify which tasks in the array failed.
 ```bash
 # replace $JOBID with the relevent slurm job id
@@ -234,8 +230,6 @@ sacct -X -j $JOBID -o jobid%20,state%20 | grep -v COMPLETED
 
 
 The databases for 16S genes is provided, but there is a guide on how to regenerate them included. If working with known organisms, such as inoculating with a lab strain, then I recommend manually adding the corresponding sequences to the files. You can also provide custom databases, following the guidelines for creating an [Emu](https://github.com/treangenlab/emu) and [Sintax](https://www.drive5.com/usearch/manual/cmd_sintax.html) database. The taxonomy databases folder also contains a taxonomy file formatted for [microeco](https://chiliubio.github.io/microeco_tutorial/), to make it easier to analyze data later.
-
-
 
 
 ## UPDATING AND MODIFYING ACT-DB AND BUILDING CUSTOM AMBIGUITY-AWARE DATABASES
@@ -249,7 +243,7 @@ database_builder.sh
 # Options:
 # -h, --help      Display this help message
 # -b, --build     Build new database
-# -d, --default   Build new standard-format database from latest NCBI 16S RefSeq and rrnDB
+# -d, --default   Rebuild the default ACT database from latest NCBI 16S RefSeq and rrnDB, grouped by default
 # -g, --group     Group and rename highly similar sequences in the database
 # -s, --sintax    Build new database from a sintax/usearch formatted database
 # -a, --add       Add user provided sequences to database
@@ -259,7 +253,7 @@ database_builder.sh
 ACT-DB is distinct from standard databases in that it accounts for sequence ambiguity by grouping highly similar 16S sequences into named multi-taxa groups that are assigned in place of individual taxa. Sequence similarity is estimated by global pairwise alignment of all database sequences using Minimap2.
 
 Grouping behavior:
-* If all sequences in a group belong to the same taxon, they are not renamed.
+* If all sequences in a group belong to the same species, they are not renamed.
 * If sequences in a group span multiple taxa, they are renamed with a new group identifier.
     * Example 1: A group containing two or more *Pseudomonas* species will be renamed at the species rank as *Pseudomonas* group 1.
     * Example 2: A group containing reads from multiple orders will be renamed at the order rank, e.g., Enterobacterales-Moraxellales group 2.
@@ -268,8 +262,6 @@ Grouping behavior:
 Before forming groups, sequences that are identified as highly similar to multiple other species are removed, but only if they represent less than 5% of the sequences for that species. The most common example of this is when a partial 16S sequence matches many other species; if this partial sequence belongs to a species that has at least 20 other sequences in the database then this partial sequence will be removed. If that species has fewer tham 20 representative sequences then the partial sequence would not be removed, to prevent losing information on intra-species diversity.
 
 After the groups are formed, taxonomic outliers are removed if they make up ≤ 1% of a group at the phylum, class, or order level. For example, in a group of 100 sequences, if 99 belong to the order *Burkholderiales* and the remaining 1 belongs to *Bacillales* then that single *Bacillales* read would be removed as being likely erroneous. This is only applied at the phylum, class, and order level and reduces the number of groups that cross multiple phyla, classes, or orders.
-
-# I am not sure what the prior sentence means. Do you mean that a sequence clusters with multiple groups? Or sequences that belong to a group that already contains other reads from that species? What is the benefit of removing these sequences?
 
 The default similarity threshold used for grouping is 0.005, equating to 99.5% sequence identity. **Users can adjust the similarity threshold** to align with the error rate of their sequencing technology or specific read set by modifying the `SIM_THRESH` field in the `config.txt` file. 
 
@@ -292,16 +284,12 @@ ACT-DB can be rebuilt to reflect updated RefSeq and rrnDB sequences as follows:
 
 ### STEP 2: Build the updated ACT-DB database
 ```bash
-# First, build a database in standard format (i.e., Emu-DB format) using the `-d` or `--default` flags 
+# The`-d` or `--default` flags will build the database then group it to output an updated ACT-DB 
 database_builder.sh -d
-
-# Then use the `-g` or `--group` flag to cluster highly similar sequences into named groups 
-database_builder.sh -g
 ```
-# Please check that these commands/comments are correct
 
-## Modifying the provided ACT-DB
-Sequences can be added to the provided ACT-DB using either a list of NCBI accessions or user-provided files. 
+## Modifying the existing database
+Sequences can be added to an existing database, such as the provided ACT-DB, using either a list of NCBI accessions or user-provided files. 
 1. **Adding sequences using NCBI accessions:**
 * Provide a text file with a list of RefSeq assembly IDs or nuceotide IDs to `ACC_LIST` in the `config.txt` file 
 * Run `database_builder.sh -n`   
@@ -310,7 +298,7 @@ Sequences can be added to the provided ACT-DB using either a list of NCBI access
 *This will re-group the database to include the newly added sequences.*
 
 >**NOTE 1**: The `database_builder.sh -n` command uses NCBI's E-utilities, which can be finicky about the types of IDs it accepts. If an accession is not found, try using a different identifier. For example, the genome for *Acidovorax facilis* R-28 can be added with either the RefSeq chromosome ID	NZ_CP183985.1 or NCBI RefSeq assembly ID GCF_049913225.1, but not the GenBank assembly ID GCA_049913225.1.   
-**NOTE 2:** The user does control the taxonomy of assemblies added in this manner; they inherit the taxonomic assignment from NCBI; additionally, all identified 16S rRNA genes will be added. If you need more control over sequences and taxonomies, use the `--add` flag as described below.
+**NOTE 2:** The user does not control the taxonomy of assemblies added in this manner; they inherit the taxonomic assignment from NCBI; additionally, all identified 16S rRNA genes will be added. If you need more control over sequences and taxonomies, use the `--add` flag as described below.
 
 2. **Modifying the database with user-provided files and the `--add` flag**  
 * This option provides the most control over the sequences and taxonomies added, as the user provides all necessary data. However, preparing the data can be time-consuming, which is why we also provide the option of using accession IDs. 
@@ -346,21 +334,7 @@ Users can build a **completely custom database** using the `-b` or `--build` fla
 
 The sequence IDs need to match in both files and the taxids should correspond to NCBI taxids. Sequences that cannot be assigned NCBI taxids should be added separately using the `-a | --add` flags after building the initial database. 
 
-Users can also **build a ACT-compatible database from a [sintax/usearch formatted](https://www.drive5.com/usearch/manual/tax_annot.html) database** using the `-s` or `--sintax` flags. Specify the database in the `BUILD_USER_SEQ` field in the `config.txt` file.
+Users can also **build a ACT-compatible database from a [sintax/usearch formatted](https://www.drive5.com/usearch/manual/tax_annot.html) database** using the `-s` or `--sintax` flags. Specify the database in the `BUILD_USER_SEQ` field in the `config.txt` file. This command can been used to convert databases like [UNITE](https://unite.ut.ee/repository.php) into am ACT compatible format.
 
 ## Other ACT-compatible databases
 Pre-built ACT-compatible databases for Silva, GreenGenes2, GTDB can be found [here](add link) but are not recommended, for reasons described in the ACT [paper](add biorxiv link). Scripts used to generate these databases are stored [here](add relative link to X folder).
-
-
-
-
-
-
-
-# Is the information below still needed? Or was this for the SynCom switch?
-If you inoculated with known organisms then prepare a file that lists the species name with taxid for each member (the names must be in the same format as the Emu database).
-```
-species
-Pseudomonas_putida_303
-Agrobacterium_tumefaciens_358
-```
