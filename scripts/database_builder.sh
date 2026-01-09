@@ -98,13 +98,13 @@ cd $WORK_DIR
 
 if [ $CONDA == "conda" ]; then
     eval "$(conda shell hook --shell bash)"
-    source activate $WORK_DIR/envs/database-env
+    source activate $ENV_DIR/database-env
 elif [ $CONDA == "mamba" ]; then
     eval "$(mamba shell hook --shell bash)"
-    mamba activate $WORK_DIR/envs/database-env
+    mamba activate $ENV_DIR/database-env
 elif [ $CONDA == "micromamba" ]; then
     eval "$(micromamba shell hook --shell bash)"
-    micromamba activate $WORK_DIR/envs/database-env
+    micromamba activate $ENV_DIR/database-env
 else
     echo "CONDA can be conda, mamba, or micromamba" 
     exit 1
