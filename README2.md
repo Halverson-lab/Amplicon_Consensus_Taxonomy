@@ -62,7 +62,7 @@ ATCCGGTCGGAGA...TCTCCGACCGGAT
 
 **Users with reads that are already demultiplexed and trimmed of adapters/barcodes** need to address the following:
 
-2. All reads should be placed in a single folder and the path to that folder should be added into the `config.txt` file under `POST_DEMUX_QC_OUT=`. Reads can be fastq or fastq.gz files and should be named in library_barcode format. Libraries should start at 1, see [earlier description](#2.-modify-the-necessary-files). Barcodes can contain any information desired, but must end with a number in three-digit format (e.g., 001, 002, …) for ACT to run properly. For example, `1_experiment_A_barcode_003.fastq` and `2_BR010.fastq.gz` are both valid but `1_experiment2_barcode_2.fastq` is not.
+2. All reads should be placed in a single folder and the path to that folder should be added into the `config.txt` file under `POST_DEMUX_QC_OUT=`. Reads can be fastq or fastq.gz files and should be named in library_barcode format. Libraries should start at 1, see [earlier description](#modify-the-necessary-files). Barcodes can contain any information desired, but must end with a number in three-digit format (e.g., 001, 002, …) for ACT to run properly. For example, `1_experiment_A_barcode_003.fastq` and `2_BR010.fastq.gz` are both valid but `1_experiment2_barcode_2.fastq` is not.
 
 # add details here about how to set thing up for starting with pre-processed reads
 </br>  
