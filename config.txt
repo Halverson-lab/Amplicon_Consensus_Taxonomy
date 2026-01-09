@@ -38,6 +38,7 @@ LOOSE_MIN_Q=12
 #Provide the path to the demultiplexed sequences in DEMUX_OUT, if empty then default is 3_Demultiplex.
 DEMUX_OUT=
 BARCODE_FILE=/path/to/dir/Amplicon_Consensus_Taxonomy/barcodes.fasta
+REQ_BOTH=FALSE
 
 # Minimum barcode overlap for cutadapt
 # Generally should be your barcode length -1
