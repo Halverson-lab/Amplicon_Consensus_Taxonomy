@@ -446,3 +446,79 @@ final_taxid_table <- sample_id_df_otu_comp %>%
 
 #save the table
 write_tsv(final_taxid_table, "abundance_table.tsv", col_names = T, eol = "\n")
+
+#### write a taxonomy with OTU file ####
+add_all_tax_levels <- function(tax_df){
+  tmp_domain <- tax_df %>%
+    select(t_domain, domain) %>%
+    distinct() %>%
+    mutate(tax_id = t_domain)
+  
+  tmp_phylum <- tax_df %>%
+    select(domain, phylum, t_domain, t_phylum) %>%
+    distinct() %>%
+    filter(!is.na(phylum)) %>%
+    mutate(tax_id = t_phylum)
+  
+  tmp_class <- tax_df %>%
+    select(domain, phylum, class,
+           t_domain, t_phylum, t_class) %>%
+    distinct() %>%
+    filter(!is.na(class)) %>%
+    mutate(tax_id = t_class)
+  
+  tmp_order <- tax_df %>%
+    select(domain, phylum, class, order,
+           t_domain, t_phylum, t_class, t_order) %>%
+    distinct() %>%
+    filter(!is.na(order)) %>%
+    mutate(tax_id = t_order)
+  
+  tmp_family <- tax_df %>%
+    select(domain, phylum, class, order, family,
+           t_domain, t_phylum, t_class, t_order, t_family) %>%
+    distinct() %>%
+    filter(!is.na(family)) %>%
+    mutate(tax_id = t_family)
+  
+  tmp_genus <- tax_df %>%
+    select(domain, phylum, class, order, family, genus,
+           t_domain, t_phylum, t_class, t_order, t_family, t_genus) %>%
+    distinct() %>%
+    filter(!is.na(genus)) %>%
+    mutate(tax_id = t_genus)
+  
+  tmp_species <- tax_df %>%
+    select(domain, phylum, class, order, family, genus, species,
+           t_domain, t_phylum, t_class, t_order, t_family, t_genus, t_species) %>%
+    distinct() %>%
+    filter(!is.na(species)) %>%
+    mutate(tax_id = t_species)
+  
+  tax_df_all <- bind_rows(list(tax_df, tmp_domain, tmp_phylum, tmp_class, tmp_order, tmp_family, tmp_genus, tmp_species)) %>% distinct()
+  
+  return(tax_df_all)
+}
+
+tidy_taxon_table <- raw_taxon_table %>%
+  distinct() %>%
+  mutate(tax_id = paste("taxid", tax_id, sep = "_")) %>%
+  mutate(across(t_domain:t_species, ~ if_else(is.na(.x), NA, paste0("taxid_", .x)))) %>%
+  add_all_tax_levels() 
+
+#pull tax_id column of otu_table to get list of all taxid and otu pairs
+taxid_list <- final_taxid_OTU_table %>%
+  separate_wider_delim(tax_id, "_OTU_", names = c("tax_id", "OTU"), too_few = "align_start") %>%
+  dplyr::select(c("tax_id", "OTU"))
+
+#make a taxonomy table with taxid_otu combos, add column OTU
+OTU_tax_table <- left_join(taxid_list, tidy_taxon_table, by = "tax_id") %>%
+  mutate(taxid_otu = if_else(is.na(OTU), tax_id, paste0(tax_id, "_OTU_", OTU))) %>%
+  relocate(taxid_otu) %>%
+  relocate(OTU, .after = species) %>%
+  dplyr::select(-tax_id) %>%
+  mutate(taxid_otu = replace_na(taxid_otu, "taxid_NA")) %>%
+  distinct() %>%
+  column_to_rownames(var = "taxid_otu")
+
+write_tsv(OTU_tax_table, "taxonomy_with_OTU.tsv", col_names = T, eol = "\n")
