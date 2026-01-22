@@ -286,6 +286,7 @@ rule meshclust:
         time = config["runtime"]["long"],
     shell: 
         """
+		set +e
         if [ {params.max_batch_size} -eq -1 ]; then
           meshclust -d {input} -o {output} -c {threads} {params.t} > {log} 2>&1
           # if meshclust fails due to threshold > 0.99 then re-run with threshold at 0.99
