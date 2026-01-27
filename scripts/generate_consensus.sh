@@ -78,13 +78,13 @@ done
 
 if [ $CONDA == "conda" ]; then
     eval "$(conda shell hook --shell bash)"
-    source activate $WORK_DIR/envs/consensus-env
+    source activate $ENV_DIR/consensus-env
 elif [ $CONDA == "mamba" ]; then
     eval "$(mamba shell hook --shell bash)"
-    mamba activate $WORK_DIR/envs/consensus-env
+    mamba activate $ENV_DIR/consensus-env
 elif [ $CONDA == "micromamba" ]; then
     eval "$(micromamba shell hook --shell bash)"
-    micromamba activate $WORK_DIR/envs/consensus-env
+    micromamba activate $ENV_DIR/consensus-env
 else
     echo "CONDA can be conda, mamba, or micromamba" 
     exit 1
