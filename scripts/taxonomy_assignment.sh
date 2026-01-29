@@ -151,8 +151,8 @@ cat << 'EOF' >> 6_emu_slurm.sh
 for read in  $READ_DIR/*0"${SLURM_ARRAY_TASK_ID}".fast*; do # for each read in the read directory
     if [[ -e $read ]] ; then #if the read exists
         # strip the excess info from the sequence headers, by saving it as a temporary file 
-        seqkit seq -i $read > tmp_"$(basename "${read%.*}")".fastq.gz 
-        read=tmp_"$(basename "${read%.*}")".fastq.gz
+        seqkit seq -i $read > tmp_"$(basename "${read%%.*}")".fastq.gz 
+        read2=tmp_"$(basename "${read%%.*}")".fastq.gz
 
         #run emu with the stripped file
         emu abundance --type lr:hq \
@@ -161,20 +161,20 @@ for read in  $READ_DIR/*0"${SLURM_ARRAY_TASK_ID}".fast*; do # for each read in t
             --keep-read-assignments \
             --output-unclassified \
             --threads ${THREADS} \
-            $read \
+            $read2 \
             --db $EMU_DB \
-            --output-dir $(basename "$read" .fastq.gz) \
-            --output-basename $(basename "$read" .fastq.gz) 
+            --output-dir $(basename "${read%%.*}") \
+            --output-basename $(basename "${read%%.*}") 
                     
         # save minimap alignment stats to csv file for ACT
-        minimap_to_csv.py "$(basename "$read" .fastq.gz)"/*.sam "$(basename "$read" .fastq.gz)"/"$(basename "$read" .fastq.gz)"_aln_stats.csv
+        minimap_to_csv.py "$(basename "${read%%.*}")"/*.sam "$(basename "${read%%.*}")"/"$(basename "${read%%.*}")"_aln_stats.csv
 
         # copy the important files to the relevant folders for later
-        cp "$(basename "$read" .fastq.gz)"/*_read-assignment-distributions.tsv $EMU_OUT/read_assignments
-        cp "$(basename "$read" .fastq.gz)"/*_aln_stats.csv $EMU_OUT/minimap2_aln_stats
+        cp "$(basename "${read%%.*}")"/*_read-assignment-distributions.tsv $EMU_OUT/read_assignments
+        cp "$(basename "${read%%.*}")"/*_aln_stats.csv $EMU_OUT/minimap2_aln_stats
 
         # remove the temporary read file
-        rm tmp*
+        rm $read2
     fi
 done
 EOF
@@ -221,21 +221,21 @@ for read in  $READ_DIR/*0"${SLURM_ARRAY_TASK_ID}".fast*; do # for each read in t
     READ_COUNT=$(seqkit stats $read -T | csvtk -t cut -f 4 | csvtk del-header)
     if [[ ! $READ_COUNT -eq 0 ]]; then # if there are >0 reads
         # strip the excess info from the sequence headers, by saving it as a temporary file 
-        seqkit seq -i $read > tmp_"$(basename "${read%.*}")".fastq.gz
-        read=tmp_"$(basename "${read%.*}")".fastq.gz
+        seqkit seq -i $read > tmp_"$(basename "${read%%.*}")".fastq.gz
+        read2=tmp_"$(basename "${read%%.*}")".fastq.gz
 
         # run sintax with the temp file
         vsearch --sintax \
-            $read \
+            $read2 \
             --db $SINTAX_DB \
-            --tabbedout $SINTAX_OUT/"$(basename "$read" .fastq.gz)"_sintax.tsv \
+            --tabbedout $SINTAX_OUT/"$(basename "${read%%.*}")"_sintax.tsv \
             --sintax_cutoff 0.5 \
             --strand both \
             -notrunclabels \
             --sintax_random
 
         # remove the temporary read file
-        rm tmp*
+        rm $read2
     fi
 done
 EOF
