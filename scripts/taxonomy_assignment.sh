@@ -151,7 +151,7 @@ cat << 'EOF' >> 6_emu_slurm.sh
 for read in  $READ_DIR/*0"${SLURM_ARRAY_TASK_ID}".fast*; do # for each read in the read directory
     if [[ -e $read ]] ; then #if the read exists
         # strip the excess info from the sequence headers, by saving it as a temporary file 
-        seqkit seq -i $read > tmp_"$(basename "${read%%.*}")".fastq.gz 
+        seqkit seq -i $read -o tmp_"$(basename "${read%%.*}")".fastq.gz 
         read2=tmp_"$(basename "${read%%.*}")".fastq.gz
 
         #run emu with the stripped file
@@ -221,7 +221,7 @@ for read in  $READ_DIR/*0"${SLURM_ARRAY_TASK_ID}".fast*; do # for each read in t
     READ_COUNT=$(seqkit stats $read -T | csvtk -t cut -f 4 | csvtk del-header)
     if [[ ! $READ_COUNT -eq 0 ]]; then # if there are >0 reads
         # strip the excess info from the sequence headers, by saving it as a temporary file 
-        seqkit seq -i $read > tmp_"$(basename "${read%%.*}")".fastq.gz
+        seqkit seq -i $read -o tmp_"$(basename "${read%%.*}")".fastq.gz
         read2=tmp_"$(basename "${read%%.*}")".fastq.gz
 
         # run sintax with the temp file
