@@ -200,7 +200,7 @@ taxonomy_assignment.sh -a
 
 ### 8. Generate the consensus OTU tables
 
-One clustering and taxonomic assignment are complete, the final consensus OTU table is generated using the `generate_consensus_table.R` script. For convenience, a shell script `generate_consensus.sh` is provided to simplify this process. If the pipeline has been run up to this point, all required files should alreaedy be in the proper locations and the script will handle everything automatically. Samples names in the output will use the library number combined with the numerical barcode IDs.
+Once clustering and taxonomic assignment are complete, the final consensus OTU table is generated using the `generate_consensus_table.R` script. For convenience, a shell script `generate_consensus.sh` is provided to simplify this process. If the pipeline has been run up to this point, all required files should alreaedy be in the proper locations and the script will handle everything automatically. Samples names in the output will use the library number combined with the numerical barcode IDs.
 
 **Note regarding 'NA' threshold for generating consensus taxonomic assignments:**  
 A critical parameter of the ACT decision tree is the Sintax 'NA' threshold. If the Sintax confidence falls below the NA threshold, taxonomy for that rank is withheld to avoid overclassification. The NA threshold is defined by the user in the 'Generate Consensus Parameters' section of the `config.txt` file (`NA_THRESHOLD`), with accepted values between 0 and 1. A higher value requires greater Sintax confidence for classification. If NA_THRESHOLD is not specified, ACT will use a default value of 0.3.
