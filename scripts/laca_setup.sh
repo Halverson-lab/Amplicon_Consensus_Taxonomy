@@ -102,25 +102,24 @@ EOF
 
 cat << 'EOF' >> 5_laca_file_setup.sh
 
-for i in $(seq 1 $LIBRARY);
-do
-    for b in "${BARCODES[@]}";
-        do
-        pattern="^${i}_.*0${b}\.fastq\.gz$"
+for i in $(seq 1 $LIBRARY); do
+    for b in "${BARCODES[@]}"; do
+        pattern="^${i}_.*0${b}\.fast.*"
         for READ in * ; do
-          if [[ -f "$READ" && "$READ" =~ $pattern ]]; then
-            # New sample names
-            SAMPLE=$((i * 100 + b))
+            if [[ -f "$READ" && "$READ" =~ $pattern ]]; then
+                # New sample names
+                new=$(echo $READ | sed -E 's/([0-9])_([a-zA-Z]*)([0-9]+)(.*$)/\2\1\3\4/')
             
-            # new folder for each sample
-            mkdir $LACA_OUT/demultiplexed_reads/sample"${SAMPLE}"
+                # new folder for each sample
+                mkdir $LACA_OUT/demultiplexed_reads/sample"$(basename "${new%%.*}")"
 
-            # copy the filtered reads into the new folder and rename them
-            cp $READ $LACA_OUT/demultiplexed_reads/sample"${SAMPLE}"/sample"${SAMPLE}".fastq.gz
+                # copy the filtered reads into the new folder and rename them
+                cp $READ $LACA_OUT/demultiplexed_reads/sample"$(basename "${new%%.*}")"/sample"${new}"
 
-            # unzip the reads
-            gunzip $LACA_OUT/demultiplexed_reads/sample"${SAMPLE}"/*.fastq.gz
-            
+                # unzip the reads
+                if gzip --test "$READ" 2>/dev/null; then
+                    gunzip $LACA_OUT/demultiplexed_reads/sample"$(basename "${new%%.*}")"/*.fastq.gz
+                fi
           fi
         done
     done
