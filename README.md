@@ -62,7 +62,7 @@ ATCCGGTCGGAGA...TCTCCGACCGGAT
 
 **Users with reads that are already demultiplexed and trimmed of adapters/barcodes** need to address the following:
 
-2. All reads should be placed in a single folder and the path to that folder should be added into the `config.txt` file under `DEMUX_OUT=`. Reads can be fastq or fastq.gz files and should be named in library_barcode format. Libraries should start at 1, see [earlier description](#2-modify-the-necessary-files). Barcodes can contain any information desired, but must end with a number in three-digit format (e.g., 001, 002, …) for ACT to run properly. For example, `1_experiment_A_barcode_003.fastq` and `2_BR010.fastq.gz` are both valid but `1_experiment2_barcode_2.fastq` is not.
+2. All reads should be placed in a single folder and the path to that folder should be added into the `config.txt` file under `DEMUX_OUT=`. Reads can be fastq or fastq.gz files and should be named in library_barcode format. Libraries should start at 1, see [earlier description](#2-modify-the-necessary-files). Barcodes can contain any information desired, but must be in the format [numbers]_[zero or more letters][numbers] with the end number in three-digit format (e.g., 001, 002, …) for ACT to run properly. Users with 100 or more barcodes should use a 4-digit format so there is always a preceding 0. For example, `1_0101.fastq.gz`, `2_BR010.fastq.gz`, and `1_experimentAbarcode_003.fastq` are all valid but `1_experiment2_barcode_102.fastq` is not.
 
 ### 3. Build conda environments
 Execution of the `environment_setup.sh` script builds all of the necessary conda environments for running ACT. Most of these environments will be saved in the `envs` directory. You will need to input "Y" several times to confirm the installation. Users may receive a pip warning regarding the `LACA` installation, but this warning can be disregarded. 
@@ -141,7 +141,7 @@ Within ACT, Emu and Sintax assign taxonomy to each read, while LACA clusters rea
  *Note: Some modifications are made to LACA to enable compatibility with ACT. These changes are stored in the 'laca_changes' directory and are automatically applied by the 'laca_setup.sh' script.*
 
 #### 6a. LACA Setup
- LACA requires all reads to be organized into a specific directory structure. The `laca_setup.sh` script will generate a slurm script to reorganize the files into the required structure. If the `-r` flag is used, the script will automatically submit this job; if not, you must manually submit the slurm script before running LACA clustering.
+ LACA requires all reads to be organized into a specific directory structure. The `laca_setup.sh` script will generate a slurm script to reorganize the files into the required structure. If the `-r` flag is used, the script will automatically submit this job; if not, you must manually submit the slurm script before running LACA clustering. Part of this directory structure is that all demultiplexed reads must be named in in the format [a-zA-Z]+[0-9]+.fastq, so part of this script reorganizes the file names from 
  
  The setup script also generates the LACA `config.yaml` file in the `5_laca` directory. This file must be manually reviewed to ensure accuracy. Specifically, you will need to verify/edit the following:
  1. Update the primers listed in the quality control section (near line 42) and in the phylogenetic tree section (near line 178). 
