@@ -292,7 +292,7 @@ if [[ $default_flag  == "true" || $sintax_flag == "true" || $ncbi_flag == "true"
         # user provided
         cat $ADD_USER_SEQ >> sequences.fasta
         cat $ADD_USER_SEQ2TAX >> seq2taxid.txt
-        if [[ -z "$ADD_USER_TAX" ]]; then
+        if [[ ! -z "$ADD_USER_TAX" ]]; then
             cat $ADD_USER_TAX >> taxonomy.tsv
         fi 
     fi
