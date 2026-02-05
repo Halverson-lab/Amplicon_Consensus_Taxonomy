@@ -518,7 +518,6 @@ OTU_tax_table <- left_join(taxid_list, tidy_taxon_table, by = "tax_id") %>%
   relocate(OTU, .after = species) %>%
   dplyr::select(-tax_id) %>%
   mutate(taxid_otu = replace_na(taxid_otu, "taxid_NA")) %>%
-  distinct() %>%
-  column_to_rownames(var = "taxid_otu")
+  distinct() 
 
 write_tsv(OTU_tax_table, "taxonomy_with_OTU.tsv", col_names = T, eol = "\n")
