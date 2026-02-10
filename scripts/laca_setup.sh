@@ -177,7 +177,10 @@ fi
 
 cat << EOF >> 5_laca_run.sh
 
+laca run all -j $SLURM_MAX_CPUS --until taxa
 
-laca run all -j $SLURM_MAX_CPUS
+if [[ -f $LACA_OUT/rep_seqs.fasta ]]; then
+    echo "LACA is finished" > laca_status.txt
+fi
 
 EOF
