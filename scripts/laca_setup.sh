@@ -67,15 +67,8 @@ if [[ -z "$LACA_OUT" ]]; then
     LACA_OUT="$WORK_DIR"/5_laca
 fi
 
-if [[ ! -e $LACA_OUT ]]; then
-    mkdir $LACA_OUT
-fi
-cd $LACA_OUT
-
-if [[ ! -e demultiplexed_reads ]]; then
-    mkdir demultiplexed_reads
-fi
-
+mkdir -p $LACA_OUT 
+mkdir -p $LACA_OUT/demultiplexed_reads
 
 cd $WORK_DIR/slurm_scripts
 
