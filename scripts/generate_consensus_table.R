@@ -429,7 +429,9 @@ final_taxid_OTU_table <- sample_id_df_otu_comp %>%
   mutate(tax_id = if_else(is.na(otu), paste0("taxid_", lowest_taxid), paste("taxid", lowest_taxid, otu, sep = "_"))) %>%
   ungroup() %>%
   select(c(tax_id, read_counts, sample_id)) %>% # keep only these columns
-  pivot_wider(names_from = sample_id, values_from = read_counts, values_fill = 0) # pivot wide for otu matrix
+  group_by(sample_id, tax_id) %>%
+  summarize(counts = sum(read_counts)) %>%
+  pivot_wider(names_from = sample_id, values_from = counts, values_fill = 0) # pivot wide for otu matrix
 
 # save the table
 write_tsv(final_taxid_OTU_table, "abundance_table_with_OTU.tsv", col_names = T, eol = "\n") 
