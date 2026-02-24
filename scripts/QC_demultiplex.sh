@@ -122,24 +122,22 @@ cd $WORK_DIR
 if [[ -z "$PRE_DEMUX_QC_OUT" ]]; then
     echo "Pre-demux filtering output directory not provided, using default"
     PRE_DEMUX_QC_OUT="$WORK_DIR"/2_chopper_1
-    [[ ! -e $PRE_DEMUX_QC_OUT ]] && { mkdir $PRE_DEMUX_QC_OUT ; }
+    mkdir -p $PRE_DEMUX_QC_OUT
 fi
 
 if [[ -z "$DEMUX_OUT" ]]; then
     echo "Demultiplexed read directory not provided, using default"
     DEMUX_OUT="$WORK_DIR"/3_Demultiplex
-    [[ ! -e $DEMUX_OUT ]] && { mkdir $DEMUX_OUT ; }
+    mkdir -p $DEMUX_OUT
 fi
 
 if [[ -z "$POST_DEMUX_QC_OUT" ]]; then
     echo "Post-demux filtering output directory not provided, using default"
     POST_DEMUX_QC_OUT="$WORK_DIR"/4_chopper_2
-    [[ ! -e $POST_DEMUX_QC_OUT ]] && { mkdir $POST_DEMUX_QC_OUT ; }
+    mkdir -p $POST_DEMUX_QC_OUT
 fi
 
-if [[ ! -e slurm_scripts ]]; then
-    mkdir slurm_scripts
-fi
+mkdir -p slurm_scripts
 
 
 ### Write the necessary slurm scripts
