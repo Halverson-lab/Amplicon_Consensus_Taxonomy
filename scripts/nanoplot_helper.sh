@@ -10,8 +10,6 @@ source config.txt
 [[ -z "$LIBRARY" ]] && { echo "LIBRARY is empty" ; exit 1; }
 [[ -z "$BARCODES" ]] && { echo "BARCODES is empty" ; exit 1; }
 
-cd $WORK_DIR
-
 
 if [ $CONDA == "conda" ]; then
     eval "$(conda shell hook --shell bash)"
@@ -29,13 +27,8 @@ fi
 
 cd $WORK_DIR
 
-if [[ ! -e 1_NanoPlot_raw_reads ]]; then
-    mkdir 1_NanoPlot_raw_reads
-fi
-
-if [[ ! -e slurm_scripts ]]; then
-    mkdir slurm_scripts
-fi
+mkdir -p 1_NanoPlot_raw_reads
+mkdir -p slurm_scripts
 
 cd slurm_scripts
 
