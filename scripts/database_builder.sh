@@ -8,6 +8,7 @@ build_flag=false
 default_flag=false
 sintax_flag=false
 group_flag=false
+pcr_flag=false
 
 usage() {
  echo "Usage: $0 [OPTIONS]"
@@ -19,6 +20,7 @@ usage() {
  echo " -s, --sintax    Build new database from a sintax/UNITE formatted database"
  echo " -a, --add       Add user provided sequences to database"
  echo " -n, --ncbi      Add sequences to database using list of NCBI accessions"
+ echo " -p, --pcr       Use AmpliconHunter2 to perform in silico PCR on the database"
 }
 
 if [ $# -eq 0 ]; then
@@ -52,6 +54,10 @@ while [[ $# -gt 0 ]]; do
       build_flag=true
       sintax_flag=true
       echo "Building database using a sintax formatted database" >&2
+      ;;
+    -p | --pcr)
+      pcr_flag=true
+      echo "Performing in silico PCR on database"
       ;;
     -g | --group)
       group_flag=true
@@ -91,7 +97,8 @@ fi
 [[ $add_flag == "true" ]] && [[ -z "$ADD_USER_SEQ2TAX" ]] && { echo "USER_SEQ2TAX is required for --add" ; exit 1; }
 [[ $ncbi_flag == "true" ]] && [[ -z "$ACC_LIST" ]] && { echo "ACC_LIST is required for --ncbi" ; exit 1; }
 [[ $group_flag == "true" ]] && [[ -z "$SIM_THRESH" ]] && { echo "SIM_THRESH is required for --group" ; exit 1; }
-
+[[ $pcr_flag == "true" ]] && [[ -z "$F_PRIMER" ]] && { echo "F_PRIMER is required for --pcr_flag" ; exit 1; }
+[[ $pcr_flag == "true" ]] && [[ -z "$R_PRIMER" ]] && { echo "R_PRIMER is required for --pcr_flag" ; exit 1; }
 
 # Set up environments
 cd $WORK_DIR
@@ -310,6 +317,56 @@ fi
 [[ -z species_taxid.fasta ]] && { echo "species_taxid.fasta does not exist, please provide database files or run database_builder.sh -d to build a default database" >&2; exit 1; }
 [[ -z taxonomy.tsv ]] && { echo "taxonomy.tsv does not exist, please provide database files or run database_builder.sh -d to build a default database" >&2; exit 1; }
 
+### Perform in silico PCR using ampliconHunter2
+if [[ $pcr_flag == "true" ]]; then
+    #assign defaults to ampliconHunter2 settings if they're empty
+    [[ -z "$AMPLICON_MIN" ]] && { AMPLICON_MIN=50 ; }
+    [[ -z "$AMPLICON_MAX" ]] && { AMPLICON_MAX=5000 ; }
+    [[ -z "$N_MISMATCH" ]] && { N_MISMATCH=3 ; }
+    [[ -z "$N_MISMATCH" ]] && { N_MISMATCH=2 ; }
+
+    #prepare the directory and primer file
+    mkdir -p ./ampliconhunter_files/compressed ./ampliconhunter_files/input
+    DB_SIZE=$( grep -c "^>" species_taxid.fasta ) # get a count of number of reads for later
+    ((DB_SIZE++)) #add 1 to that count 
+    mv species_taxid.fasta ./ampliconhunter_files/input/
+    cd ampliconhunter_files
+    echo $F_PRIMER > primers.txt
+    echo $R_PRIMER >> primers.txt 
+    
+    #compress the fasta for ampliconHunter2
+    amplicon_hunter compress --input-dir input --output compressed
+    ls -d "$PWD"/compressed/*.2bit > file_list.txt
+
+    #run amplicon hunter
+    amplicon_hunter run --input file_list.txt --primers primers.txt --output species_taxid_amplicons.fasta --min-length $AMPLICON_MIN --max-length $AMPLICON_MAX --mismatches $N_MISMATCH --clamp $CLAMP
+
+    #remove amplicon hunter info from names
+    cat species_taxid_amplicons.fasta | seqkit replace -p  "\.fileID=.+" | seqkit replace -p "_\[" -r " [" > species_taxid_amplicons_short_names.fasta
+
+    #rename duplicate names, these happen if one sequence has more than one possible amplicon
+    seqkit rename species_taxid_amplicons_short_names.fasta -o species_taxid_amplicons_duplicates_renamed.fasta
+    #pull the headers of any that were renamed as duplicates in the previous step and re-number them
+    seqkit grep -r -p "_[0-9]$" species_taxid_amplicons_duplicates_renamed.fasta | seqkit seq -n > duplicated_ids.txt
+    
+    cat duplicated_ids.txt \
+        | csvtk add-header -n old_name -t \ #add header
+        | csvtk sep -t -f 1 -s ":" -n taxid,db,num \  #split the sequence ID into its components
+        | csvtk sep -t -f 4 -s " " -n num2,info \  #split the sequence info from the read number
+        | csvtk replace -t -f num2 -p '_[0-9]' -r '' \  #remove the numbers seqkit added when renaming duplicates
+        | csvtk sort -t -k num2 \ #sort by read number
+        | csvtk replace -t -f num2 -p ".*" -r "{nr}" -n $DB_SIZE \ #renumber the reads starting from the end, to make sure each is unique
+        | csvtk mutate2 -t -n new_name --numeric-as-string -e '$taxid + ":" + $db + ":" + ${num2} + " " + $info' \  #paste the pieces back together into the new ID
+        | csvtk cut -t -f old_name,new_name \ #get rid of columns we don't need
+        | csvtk del-header -t > old_id_to_new_id.tsv #delete the header and save
+
+    #replace the duplicated IDs with the new ones
+    cat species_taxid_amplicons_duplicates_renamed.fasta | seqkit replace -p '(.+)$' -r '{kv}' -k old_id_to_new_id.tsv --keep-key -o final_species_taxid_amplicons.fasta
+    
+    #copy the final file to the right folder
+    cp final_species_taxid_amplicons.fasta $DATABASE_DIR/species_taxid.fasta
+
+fi
 
 ### dereplicate the database
 if [[ $group_flag == "true" ]]; then
