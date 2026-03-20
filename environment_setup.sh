@@ -49,8 +49,14 @@ if [ $CONDA == "conda" ]; then
     [[ ! -e $ENV_DIR/taxonomy-env ]] && { conda env create --prefix ./taxonomy-env -f taxonomy.yaml; }
     [[ ! -e $ENV_DIR/database-env ]] && { conda env create --prefix ./database-env -f database.yaml; }
     [[ ! -e $ENV_DIR/consensus-env ]] && { conda env create --prefix ./consensus-env -f consensus.yaml; }
-
     
+    conda activate ./database-env
+    git clone https://github.com/rhowardstone/AmpliconHunter2.git
+    cd AmpliconHunter2; make;
+    cp amplicon_hunter $ENV_DIR/database-env/bin/
+    cd $ENV_DIR
+    conda deactivate
+
     #prep laca env
     if [ -z "$( ls -A $LACA_DIR )" ]; then
         cd "$(dirname "$LACA_DIR")"
@@ -94,6 +100,12 @@ elif [ $CONDA == "mamba" ]; then
     [[ ! -e $ENV_DIR/database-env ]] && { mamba env create --prefix ./database-env -f database.yaml; }
     [[ ! -e $ENV_DIR/consensus-env ]] && { mamba env create --prefix ./consensus-env -f consensus.yaml; }
 
+    mamba activate ./database-env
+    git clone https://github.com/rhowardstone/AmpliconHunter2.git
+    cd AmpliconHunter2; make;
+    cp amplicon_hunter $ENV_DIR/database-env/bin/
+    cd $ENV_DIR
+    mamba deactivate
     
     #prep laca env
     if [ -z "$( ls -A $LACA_DIR )" ]; then
@@ -138,6 +150,12 @@ elif [ $CONDA == "micromamba" ]; then
     [[ ! -e $ENV_DIR/database-env ]] && { micromamba env create --prefix ./database-env -f database.yaml; }
     [[ ! -e $ENV_DIR/consensus-env ]] && { micromamba env create --prefix ./consensus-env -f consensus.yaml; }
 
+    micromamba activate ./database-env
+    git clone https://github.com/rhowardstone/AmpliconHunter2.git
+    cd AmpliconHunter2; make;
+    cp amplicon_hunter $ENV_DIR/database-env/bin/
+    cd $ENV_DIR
+    micromamba deactivate
     
     #prep laca env
     if [ -z "$( ls -A $LACA_DIR )" ]; then
