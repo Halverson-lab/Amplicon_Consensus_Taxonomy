@@ -248,6 +248,7 @@ database_builder.sh
 # -s, --sintax    Build new database from a sintax/usearch formatted database
 # -a, --add       Add user provided sequences to database
 # -n, --ncbi      Add sequences to database using list of NCBI accessions
+# -p, --pcr       Use AmpliconHunter2 to perform in silico PCR on the database
 ```
 ### IMPORTANT NOTE ON GROUPING (`-g`, `--group`)
 ACT-DB is distinct from standard databases in that it accounts for sequence ambiguity by grouping highly similar 16S sequences into named multi-taxa groups that are assigned in place of individual taxa. Sequence similarity is estimated by global pairwise alignment of all database sequences using Minimap2.
@@ -335,6 +336,16 @@ Users can build a **completely custom database** using the `-b` or `--build` fla
 The sequence IDs need to match in both files and the taxids should correspond to NCBI taxids. Sequences that cannot be assigned NCBI taxids should be added separately using the `-a | --add` flags after building the initial database. 
 
 Users can also **build a ACT-compatible database from a [sintax/usearch formatted](https://www.drive5.com/usearch/manual/tax_annot.html) database** using the `-s` or `--sintax` flags. Specify the database in the `BUILD_USER_SEQ` field in the `config.txt` file. This command can been used to convert databases like [UNITE](https://unite.ut.ee/repository.php) into am ACT compatible format.
+
+## Extracting amplicons from a database
+The `-p` or `--pcr` flags can be used to perform _in silico_ PCR on an existing database to extract the amplicons that would be produced by your primers. This can be used to make a database that focuses on specific regions and can increase the precision of taxonomic classification by removing noise from the database. It uses [AmpliconHunter2](https://github.com/rhowardstone/AmpliconHunter2) to extract all possible amplicons using user provided primers. Primers must be listed in the `config.txt` as `F_PRIMER` and `R_PRIMER` for forward and reverse and must be in 5' -> 3' orientation. Additional settings for AmpliconHunter2, such as min and max amplicon size and number of mismatches allowed, can be modified if desired but will otherwise run with defaults. If you are building a grouped database with extracted amplicons (`database_builder.sh --group --pcr`) then the amplicons will be extracted first and then grouped by similarity after.
+
+| Config setting | Description | 
+|:-------------- | :---------- | 
+| AMPLICON_MIN | Minimum amplicon length (default: 50) |
+| AMPLICON_MAX | Maximum amplicon length (default: 5000) |
+| N_MISMATCH | Maximum mismatches (default: 3) |
+| CLAMP | 3' clamp size (default: 2) |
 
 ## Other ACT-compatible databases
 Pre-built ACT-compatible databases for Silva, GreenGenes2, GTDB can be found [here](add link) but are not recommended, for reasons described in the ACT [paper](add biorxiv link). Scripts used to generate these databases are stored [here](add relative link to X folder).
