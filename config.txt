@@ -126,6 +126,16 @@ ADD_USER_TAX=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases/new_tax
 # Will retrieve the annotated 16S genes from the assembled genome
 ACC_LIST=/path/to/dir/Amplicon_Consensus_Taxonomy/taxonomy_databases/accessions_list.txt
 
+#### trim database using in silico PCR ####
+F_PRIMER=AGAGTTTGATYMTGGCTCAG
+R_PRIMER=CGGYTACCTTGTTACGACTT
+
+# ampliconHunter2 settings, see their documentation for further descriptions
+AMPLICON_MIN=50
+AMPLICON_MAX=5000
+N_MISMATCH=3
+CLAMP=2
+
 #### Database grouping parameter ####
 # Similarity threshold for identify if two sequences are too similar to each other for nanopore to differentiate
 # Default threshold is 0.005, so if two reads are >99.5% identical they will be grouped 
