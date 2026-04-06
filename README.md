@@ -229,10 +229,10 @@ sacct -X -j $JOBID -o jobid%20,state%20 | grep -v COMPLETED
 ```
 
 ## UPDATING AND MODIFYING ACT-DB AND BUILDING CUSTOM AMBIGUITY-AWARE DATABASES
-ACT-DB integrates 16S sequences from the [NCBI 16S rRNA RefSeq database]((https://www.ncbi.nlm.nih.gov/refseq/)) and the [Ribosomal RNA Database](https://rrndb.umms.med.umich.edu/). Users are encouraged to update ACT-DB, add sequences to ACT-DB, or construct a custom database to use with ACT to fit different experimental systems. When working with known organisms (e.g., laboratory strains), it is recommended that the corresponding sequences be manually added to the database files. Users can also provide custom databases, following the guidelines for creating an [Emu](https://github.com/treangenlab/emu) and [Sintax](https://www.drive5.com/usearch/manual/cmd_sintax.html) database. The taxonomy databases folder also contains a taxonomy file formatted for [microeco](https://chiliubio.github.io/microeco_tutorial/), to make it easier to analyze data later.
+ACT-DB integrates 16S sequences from the [NCBI 16S rRNA RefSeq database]((https://www.ncbi.nlm.nih.gov/refseq/)) and the [Ribosomal RNA Database](https://rrndb.umms.med.umich.edu/). Users are encouraged to update ACT-DB, add sequences to ACT-DB, or construct a custom database to use with ACT to fit different experimental systems. When working with known organisms (e.g., laboratory strains), it is recommended that the corresponding sequences be manually added to the database files. Users can also provide custom databases, following the guidelines for creating an [Emu](https://github.com/treangenlab/emu) or [Sintax](https://www.drive5.com/usearch/manual/cmd_sintax.html) database. The ACT pipeline will also automatically create a taxonomy file formatted for [microeco](https://chiliubio.github.io/microeco_tutorial/) as one of the final steps.
 
 ## Script for working with ACT-DB and building custom databases
-For convenience, a `database_builder.sh` script is provided to make working with ACT-DB and building custom databases as easy as possible. The specific process for updating ACT-DB, adding sequences to ACT-DB, and building a custom database are outlined below.
+For convenience, a `database_builder.sh` script is provided to make working with ACT-DB and building custom databases as easy as possible. The specific process for updating ACT-DB, adding sequences to ACT-DB, and building a custom database are outlined below. Multiple options can be combined in a single step, for example `database_builder.sh -s -a -p -g` would build a database from  a sintax formatted database, add the provided sequences, perform _in silico_ PCR, and finally group the results. Alternatively, these steps can be performed individually but should follow the order of 'build, add, trim, group', with grouping always performed last.
 ```bash
 database_builder.sh
 
@@ -240,11 +240,11 @@ database_builder.sh
 # -h, --help      Display this help message
 # -b, --build     Build new database
 # -d, --default   Rebuild the default ACT database from latest NCBI 16S RefSeq and rrnDB, grouped by default
-# -g, --group     Group and rename highly similar sequences in the database
 # -s, --sintax    Build new database from a sintax/usearch formatted database
 # -a, --add       Add user provided sequences to database
 # -n, --ncbi      Add sequences to database using list of NCBI accessions
 # -p, --pcr       Use AmpliconHunter2 to perform in silico PCR on the database
+# -g, --group     Group and rename highly similar sequences in the database
 ```
 ### IMPORTANT NOTE ON GROUPING (`-g`, `--group`)
 ACT-DB is distinct from standard databases in that it accounts for sequence ambiguity by grouping highly similar 16S sequences into named multi-taxa groups that are assigned in place of individual taxa. Sequence similarity is estimated by global pairwise alignment of all database sequences using Minimap2.
@@ -268,9 +268,8 @@ To accompany the grouped database, the grouping function generates the following
 * species in each group (group_to_species_list.csv)
 
 ## Rebuilding (i.e., updating) ACT-DB
-The provided version of ACT-DB was built in **XXXX**. Highly similar sequences were grouped based on a similarity threshold of 99.5%, which represents the higher end of ONT sequencing accuracy achievable when the database was built (between Q20 (99%) and Q30 (99.9%)). 
+We have provided some ready-to-use databases on OSF (insert doi to OSF once available), including two versions of ACT-DB built in Nov-2024 and Sep-2025. Highly similar sequences were grouped based on a similarity threshold of 99.5%, which represents the higher end of ONT sequencing accuracy achievable when the database was built (between Q20 (99%) and Q30 (99.9%)). 
 
-# Specify when the ACT-DB was built. (I don't think the repo has the most recent one)
 ACT-DB can be rebuilt to reflect updated RefSeq and rrnDB sequences as follows:
 
 ### STEP 1: Modify the `config.txt` file
@@ -286,7 +285,7 @@ database_builder.sh -d
 ```
 
 ## Modifying the existing database
-Sequences can be added to an existing database, such as the provided ACT-DB, using either a list of NCBI accessions or user-provided files. 
+Sequences can be added to an existing database, such as the provided ACT-DB, using either a list of NCBI accessions or user-provided files. If using a grouped database then sequences must be added prior to or simulataneous with grouping, this can be easily done by combining them into a single command e.g. `database_builder.sh -a -g`. The order of the flags after the command does not matter, as the addition of sequences will always be performed before the grouping step.
 1. **Adding sequences using NCBI accessions:**
 * Provide a text file with a list of RefSeq assembly IDs or nucleotide IDs (one per line) to `ACC_LIST` in the `config.txt` file 
 * Run `database_builder.sh -n`   
@@ -347,4 +346,4 @@ The `-p` or `--pcr` flags can be used to perform _in silico_ PCR on an existing 
 | CLAMP | 3' clamp size (default: 2) |
 
 ## Other ACT-compatible databases
-Pre-built ACT-compatible databases for Silva, GreenGenes2, GTDB can be found [here](add link) but are not recommended, for reasons described in the ACT [paper](add biorxiv link). Scripts used to generate these databases are stored [here](add relative link to X folder).
+Pre-built ACT-compatible databases for Silva, GreenGenes2, GTDB can be found [here](add link) but are not recommended, for reasons described in the ACT [paper](add biorxiv link). None of the pre-built databases are grouped unless otherwise specified in their [documentation](link to the osf wiki page for the project). Scripts used to generate these databases are stored [here](add relative link to X folder). For fungal amplicons we have provided two versions of the [Eukaryome database](https://doi.org/10.1093/database/baae043) pre-built for ACT. One of these is amplicon extracted version (made using the `-p` default settings), as we found the original database to contain many large (20 kb+) mitochondrion sequences that would not be amplified by our primers (ITS1 TCCGTAGGTGAACCTGC and TW13 GGTCCGTGTTTCAAGACG).
