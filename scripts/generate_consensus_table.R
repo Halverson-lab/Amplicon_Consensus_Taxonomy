@@ -373,7 +373,9 @@ sample_id_df <- data.frame()
 
 for(sample_id in sample_list){
   # check if emu file exists for sample
-  if(file.exists(paste0(emu_path,"read_assignments/", sample_id, "_read-assignment-distributions.tsv")) & file.exists(paste0(sintax_path, sample_id, "_sintax.tsv"))) {
+  emu_file_name <- paste0(emu_path,"read_assignments/", sample_id, "_read-assignment-distributions.tsv")
+  sintax_file_name <- paste0(sintax_path, sample_id, "_sintax.tsv")
+  if(file.exists(sintax_file_name) & file.exists(emu_file_name) & (file.size(emu_file_name) > 4)) {
     # read in emu and sintax files
     emu_file <- read_tsv(paste0(emu_path,"read_assignments/", sample_id, "_read-assignment-distributions.tsv"), col_types = cols(.default = "d", `...1` = "c"))
     minimap_file <- read_csv(paste0(emu_path, "minimap2_aln_stats/", sample_id, "_aln_stats.csv"))
