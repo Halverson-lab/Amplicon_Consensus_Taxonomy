@@ -344,14 +344,14 @@ new_taxonomies <- read_list_with_new_group_name %>%
 # setup new taxonomies
 for(n in 1:nrow(new_taxonomies)){
   if (new_taxonomies[[n, "group_level"]] == "s"){
-    new_taxonomies$species[n] <- paste(new_taxonomies[[n, "group"]], new_taxonomies[[n, "group_name"]], "sp", sep = "_")
+    new_taxonomies$species[n] <- paste(new_taxonomies[[n, "group_name"]], "spp", new_taxonomies[[n, "group"]], sep = "_")
     if(is.na(new_taxonomies$t_genus[n])){
       new_taxonomies$t_species[n] <- new_taxonomies$new_taxid[n]
     } else {
       new_taxonomies$t_species[n] <- as.character(trailing_zeros(new_taxonomies$t_genus[n]) + new_taxonomies[[n, "group_num"]])
     }
   } else if (new_taxonomies[[n, "group_level"]] == "g"){
-    new_taxonomies$genus[n] <- paste(new_taxonomies[[n, "group"]], new_taxonomies[[n, "group_name"]], "sp", sep = "_")
+    new_taxonomies$genus[n] <- paste(new_taxonomies[[n, "group_name"]], "spp", new_taxonomies[[n, "group"]], sep = "_")
     if(is.na(new_taxonomies$t_family[n])){
       new_taxonomies$t_genus[n] <- new_taxonomies$new_taxid[n]
     } else {
@@ -362,7 +362,7 @@ for(n in 1:nrow(new_taxonomies)){
       new_taxonomies[[n, paste0("t_",taxa)]] <- NA
     }
   } else if (new_taxonomies[[n, "group_level"]] == "f"){
-    new_taxonomies$family[n] <- paste(new_taxonomies[[n, "group"]], new_taxonomies[[n, "group_name"]], "sp", sep = "_")
+    new_taxonomies$family[n] <- paste(new_taxonomies[[n, "group_name"]], "spp", new_taxonomies[[n, "group"]], sep = "_")
     if(is.na(new_taxonomies$t_order[n])){
       new_taxonomies$t_family[n] <- new_taxonomies$new_taxid[n]
     } else {
@@ -373,7 +373,7 @@ for(n in 1:nrow(new_taxonomies)){
       new_taxonomies[[n, paste0("t_",taxa)]] <- NA
     }
   } else if (new_taxonomies[[n, "group_level"]] == "o"){
-    new_taxonomies$order[n] <- paste(new_taxonomies[[n, "group"]], new_taxonomies[[n, "group_name"]], "sp", sep = "_")
+    new_taxonomies$order[n] <- paste(new_taxonomies[[n, "group_name"]], "spp", new_taxonomies[[n, "group"]], sep = "_")
     if(is.na(new_taxonomies$t_class[n])){
       new_taxonomies$t_order[n] <- new_taxonomies$new_taxid[n]
     } else {
@@ -384,7 +384,7 @@ for(n in 1:nrow(new_taxonomies)){
       new_taxonomies[[n, paste0("t_",taxa)]] <- NA
     }
   } else if (new_taxonomies[[n, "group_level"]] == "c"){
-    new_taxonomies$class[n] <- paste(new_taxonomies[[n, "group"]], new_taxonomies[[n, "group_name"]], "sp", sep = "_")
+    new_taxonomies$class[n] <- paste(new_taxonomies[[n, "group_name"]], "spp", new_taxonomies[[n, "group"]], sep = "_")
     if(is.na(new_taxonomies$t_phylum[n])){
       new_taxonomies$t_class[n] <- new_taxonomies$new_taxid[n]
     } else {
@@ -395,7 +395,7 @@ for(n in 1:nrow(new_taxonomies)){
       new_taxonomies[[n, paste0("t_",taxa)]] <- NA
     }
   } else if (new_taxonomies[[n, "group_level"]] == "p"){
-    new_taxonomies$phylum[n] <- paste(new_taxonomies[[n, "group"]], new_taxonomies[[n, "group_name"]], "sp", sep = "_")
+    new_taxonomies$phylum[n] <- paste(new_taxonomies[[n, "group_name"]], "spp", new_taxonomies[[n, "group"]], sep = "_")
     if(is.na(new_taxonomies$t_domain[n])){
       new_taxonomies$t_phylum[n] <- new_taxonomies$new_taxid[n]
     } else {
