@@ -516,7 +516,7 @@ taxid_list <- final_taxid_OTU_table %>%
   dplyr::select(c("tax_id", "OTU"))
 
 #make a taxonomy table with taxid_otu combos, add column OTU
-OTU_tax_table <- left_join(taxid_list, tidy_taxon_table, by = "tax_id") %>%
+OTU_tax_table <- full_join(taxid_list, tidy_taxon_table, by = "tax_id") %>%
   mutate(taxid_otu = if_else(is.na(OTU), tax_id, paste0(tax_id, "_OTU_", OTU))) %>%
   relocate(taxid_otu) %>%
   relocate(OTU, .after = species) %>%
