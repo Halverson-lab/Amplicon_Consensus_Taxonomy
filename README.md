@@ -268,7 +268,7 @@ To accompany the grouped database, the grouping function generates the following
 * species in each group (group_to_species_list.csv)
 
 ## Rebuilding (i.e., updating) ACT-DB
-We have provided some ready-to-use databases on OSF (insert doi to OSF once available), including two versions of ACT-DB built in Nov-2024 and Sep-2025. Highly similar sequences were grouped based on a similarity threshold of 99.5%, which represents the higher end of ONT sequencing accuracy achievable when the database was built (between Q20 (99%) and Q30 (99.9%)). 
+We have provided some ready-to-use databases on [OSF](https://osf.io/tjcw4), including two versions of ACT-DB built in Nov-2024 and Sep-2025. Highly similar sequences were grouped based on a similarity threshold of 99.5%, which represents the higher end of ONT sequencing accuracy achievable when the database was built (between Q20 (99%) and Q30 (99.9%)). 
 
 ACT-DB can be rebuilt to reflect updated RefSeq and rrnDB sequences as follows:
 
@@ -346,4 +346,4 @@ The `-p` or `--pcr` flags can be used to perform _in silico_ PCR on an existing 
 | CLAMP | 3' clamp size (default: 2) |
 
 ## Other ACT-compatible databases
-Pre-built ACT-compatible databases for Silva, GreenGenes2, GTDB can be found [here](add link) but are not recommended, for reasons described in the ACT [paper](add biorxiv link). None of the pre-built databases are grouped unless otherwise specified in their [documentation](link to the osf wiki page for the project). Scripts used to generate these databases are stored [here](add relative link to X folder). For fungal amplicons we have provided two versions of the [Eukaryome database](https://doi.org/10.1093/database/baae043) pre-built for ACT. One of these is amplicon extracted version (made using the `-p` default settings), as we found the original database to contain many large (20 kb+) mitochondrion sequences that would not be amplified by our primers (ITS1 TCCGTAGGTGAACCTGC and TW13 GGTCCGTGTTTCAAGACG).
+Pre-built ACT-compatible databases for Silva, GreenGenes2, GTDB can be found [here](https://osf.io/jzf49) but are not recommended, for reasons described in the [ACT paper](add biorxiv link). None of the pre-built databases are grouped unless otherwise specified in their documentation. For fungal amplicons we have provided two versions of the [Eukaryome database](https://doi.org/10.1093/database/baae043) pre-built for ACT. One of these is amplicon extracted version (made using the `-p` default settings), as we found the original database to contain many large (20 kb+) mitochondrion sequences that would not be amplified by our primers (ITS1 TCCGTAGGTGAACCTGC and TW13 GGTCCGTGTTTCAAGACG).
